@@ -8,6 +8,7 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 */
 
 //Included Libraries:
+#include <Arduino.h>
 #include <SerialCommand.h>
 #include <SoftwareSerial.h>
 #include <EEPROM.h>
@@ -27,9 +28,9 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 //DEFINE OUTPUT AND INPUT ALIASES
 
 //DEFAULT: PINS 2 & 3 TO BE USED AS NORMAL OUTPUTS:
-#define P2 2        //D2  MULTI-PURPOSE
-#define P3 3        //D3  MULTI-PURPOSE
-bool ExtInterrupts = true; //defaut us 'false'. Change to 'true' if you would like to use pins 2 and 3 as external interupts:
+#define O2 2        //D2  MULTI-PURPOSE
+#define O3 3        //D3  MULTI-PURPOSE
+bool AnalogAsDigital = False; //defaut us 'false'. Change to 'true' if you would like to use Analog pins as Digital:
 
 
 //DEFAULTS
@@ -61,11 +62,11 @@ unsigned long gScanRate;
 unsigned long gScanRateMin;
 unsigned long gScanRateMax;
 unsigned long ScanStartMicros;
-volatile byte P2_State, P3_State;
+volatile byte O2_State, O3_State;
 char gAck[4];
 char gNack[5];
 char gbuf[8];
-char* gOutAliases[]={"S1", "P2", "P3", "O4", "O5"};
+char* gOutAliases[]={"S1", "O2", "O3", "O4", "O5"};
 char* gInAliases[]={"I8", "I9", "I10","I11","I12","I3"};
 char* gCharPins[]={"0","1","2","3","4","5","6","7","8","9","10","11","12","13"};
 
@@ -81,22 +82,26 @@ cli();//stop interrupts
  gScanRateMax = 0;
  strcpy(gAck, "ACK");
  strcpy(gNack, "NACK");
- //DEFINE OUTPUTS
- if (ExtInterrupts == true) //If external interrupts are used, then define them as inputs instead of outputs.
+ //DEFINE Anolog Pins
+ /*if (AnalogAsDigital == true) //If this flag is set, then define A0-A5 as Digital instead of Analog.
  {
   //SET UP EXT INTERUPTS
-  pinMode(P2, INPUT);
-  pinMode(P3, INPUT);
-  P2_State = LOW;
-  P3_State = LOW;
-  attachInterrupt(digitalPinToInterrupt(P2), ISR2, FALLING); // SYNTAX: attachInterrupt(digitalPinToInterrupt(pin), <ISR-FUNCTION>, mode)
-  attachInterrupt(digitalPinToInterrupt(P3), ISR3, CHANGE);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  O2_State = LOW;
+  O3_State = LOW;
+  attachInterrupt(digitalPinToInterrupt(O2), ISR2, FALLING); // SYNTAX: attachInterrupt(digitalPinToInterrupt(pin), <ISR-FUNCTION>, mode)
+  attachInterrupt(digitalPinToInterrupt(O3), ISR3, CHANGE);
  }
  else
  {
-  pinMode(P2, OUTPUT);
-  pinMode(P3, OUTPUT);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
  }
+ */
+ //DEFINE OUTPUTS
+ pinMode(O2, OUTPUT);
+ pinMode(O3, OUTPUT);
  pinMode(O4, OUTPUT);
  pinMode(O5, OUTPUT);
  pinMode(O6, OUTPUT);
@@ -112,7 +117,7 @@ cli();//stop interrupts
 
  Serial.println("READY");
 sei();//allow interrupts
-digitalWrite(P2, LOW);digitalWrite(P3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
+digitalWrite(O2, LOW);digitalWrite(O3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
 }
 
 void loop() {
@@ -135,7 +140,7 @@ ScanStartMicros = micros();
     }
   }
 */
-if (P2_State == 0)
+if (O2_State == 0)
 
  // check for serial activity
   gSerialCommands.readSerial();
@@ -152,16 +157,16 @@ if (P2_State == 0)
 
 void ISR2() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
 {
-  P2_State = !P2_State;
+  O2_State = !O2_State;
   Serial.print("STCHG,2,"); //Send STCHG. AKA STATE CHANGE
-  Serial.println(P2_State);
+  Serial.println(O2_State);
 }
 
 void ISR3() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
 {
-  P3_State = !P3_State;
+  O3_State = !O3_State;
   Serial.print("STCHG,3,"); //Send STCHG. AKA STATE CHANGE
-  Serial.println(P3_State);
+  Serial.println(O3_State);
 }
 
 void ISR4()
@@ -287,10 +292,10 @@ void ToggleOutput(void) //Called using 'TOUT'
         digitalWrite(S1, GetNextState(OutNum));
           break;
         case 2:
-        digitalWrite(P2, GetNextState(OutNum));
+        digitalWrite(O2, GetNextState(OutNum));
           break;
         case 3:
-        digitalWrite(P3, GetNextState(OutNum));
+        digitalWrite(O3, GetNextState(OutNum));
           break;
         case 4:
         digitalWrite(O4, GetNextState(OutNum));
@@ -346,15 +351,15 @@ void PulseOutput(void) //Called using 'POUT'
           Serial.println(result);
           break;
         case 2:
-          digitalWrite(P2, HIGH);
+          digitalWrite(O2, HIGH);
           delay(long(PulseTime));
-          digitalWrite(P2, LOW);
+          digitalWrite(O2, LOW);
           result = gAck;
           break;
         case 3:
-          digitalWrite(P3, HIGH);
+          digitalWrite(O3, HIGH);
           delay(long(PulseTime));
-          digitalWrite(P3, LOW);
+          digitalWrite(O3, LOW);
           break;
           result = gAck;
         case 4:
@@ -528,7 +533,7 @@ int pos = 0;    // variable to store the servo position
 }//end function 'SetPWM'
 
 
-bool GetCurState(char *iPinNum) //gets the current state of the specified output PIN.
+bool GetCurState(char *iPinNum) //gets the current state of the specified PIN.
 {
   /* What Made This Possible...
    * Serial.println(bitRead(PORTD,3)); //Reads bit 3 of register PORTD which contains the current state (high/low) of pin 3.
@@ -550,30 +555,7 @@ bool GetCurState(char *iPinNum) //gets the current state of the specified output
     {
       PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
     }
-  /*switch (atoi(iPinNum))
-      {
-        case 1:
-        pin= S1;
-        PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-        case 2:
-        pin= P2;
-        PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-        case 3:
-        pin= P3;
-       PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-        case 4:
-        pin= O4;
-        PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-        case 5:
-        pin= O5;
-        PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-      }
-      */
+  
   return PinState;
 }
 
