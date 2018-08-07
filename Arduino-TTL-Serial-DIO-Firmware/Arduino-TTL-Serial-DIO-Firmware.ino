@@ -112,7 +112,14 @@ cli();//stop interrupts
  pinMode(I10,INPUT);
  pinMode(I11,INPUT);
  pinMode(I12,INPUT);
- pinMode(I13,INPUT);
+ pinMode(I13,INPUT
+
+PCintPort::attachInterrupt(I8, ISR8, CHANGE);
+PCintPort::attachInterrupt(I9, ISR9, CHANGE);
+PCintPort::attachInterrupt(I10, ISR10, CHANGE);
+PCintPort::attachInterrupt(I11, ISR11, CHANGE);
+PCintPort::attachInterrupt(I12, ISR12, CHANGE);
+PCintPort::attachInterrupt(I13, ISR13, CHANGE);
 
 
  Serial.println("READY");
@@ -555,7 +562,7 @@ bool GetCurState(char *iPinNum) //gets the current state of the specified PIN.
     {
       PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
     }
-  
+
   return PinState;
 }
 
