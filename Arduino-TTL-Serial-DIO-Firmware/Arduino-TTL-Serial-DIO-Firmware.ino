@@ -15,6 +15,10 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #include <Servo.h>
 #include <"D:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\Commands.h">
 #include <"D:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\ISRs.h">
+<<<<<<< HEAD
+=======
+#include <DirectIO.h>
+>>>>>>> ae410a16c0ba1fbd3f22b8f7a1194a94a55fb983
 #define kSerialBaudRate 9600
 
 /*
