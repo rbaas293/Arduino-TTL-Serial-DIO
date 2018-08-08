@@ -15,3 +15,5 @@ void SetPWM(void);
 void CmdUnknown(const char *iCommand); //Called on anything sent that is not defined as a command (ex. 'TPGTRIG')
 void DebugPrint(void); //FUNCTION FOR SERIAL DEBUGING
 void CmdQueryScanRate(void); //Called using 'SRT?'
+
+#endif

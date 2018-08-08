@@ -19,3 +19,33 @@ void ISR4()
 // Placeholder
 
 }
+void ISR8()
+{
+// Placeholder
+
+}
+void ISR9()
+{
+// Placeholder
+
+}
+void ISR10()
+{
+// Placeholder
+
+}
+void ISR11()
+{
+// Placeholder
+
+}
+void ISR12()
+{
+// Placeholder
+
+}
+void ISR13()
+{
+// Placeholder
+
+}
