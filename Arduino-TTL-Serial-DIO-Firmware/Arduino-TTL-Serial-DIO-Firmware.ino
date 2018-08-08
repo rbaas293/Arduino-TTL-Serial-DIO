@@ -14,6 +14,7 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #include <EEPROM.h>
 #include <Servo.h>
 #include <Commands.cpp>
+#include <DirectIO.h>
 #define kSerialBaudRate 9600
 
 /*
