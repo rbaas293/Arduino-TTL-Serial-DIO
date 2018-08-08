@@ -13,8 +13,8 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #include <SoftwareSerial.h>
 #include <EEPROM.h>
 #include <Servo.h>
-#include <Commands.h>
-#include <ISRs.h>
+#include <"D:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\Commands.h">
+#include <"D:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\ISRs.h">
 #define kSerialBaudRate 9600
 
 /*
@@ -45,6 +45,7 @@ bool AnalogAsDigital = False; //defaut us 'false'. Change to 'true' if you would
 #define I11 11      //D11 Input
 #define I12 12      //D12 Input
 #define I13 13      //D13 Input
+
 
 //Analoge Pins:
   //CAN BE REFERED TO BY 'A_' WHERE '_' IS A THE ANALOGE INPUT NUMBER
