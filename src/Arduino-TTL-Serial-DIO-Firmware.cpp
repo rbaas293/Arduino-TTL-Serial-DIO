@@ -18,8 +18,8 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #include <SoftwareSerial.h>
 #include <EEPROM.h>
 #include <Servo.h>
-#include "Commands\Commands.h"
-#include "ISRs\ISRs.h"
+#include "Commands.h"
+#include "ISRs.h"
 #include "DirectIO.h"
 #define kSerialBaudRate 9600
 //#include <PinChangeInt.h>
