@@ -1,5 +1,7 @@
 #include "ISRs.h"
 
+bool O2_State;
+bool O3_State;
 void ISR2() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
 {
   O2_State = !O2_State;
