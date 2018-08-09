@@ -1,8 +1,3 @@
-#include <PinChangeInterrupt.h>
-#include <PinChangeInterruptBoards.h>
-#include <PinChangeInterruptPins.h>
-#include <PinChangeInterruptSettings.h>
-
 /*
  By: Ryan Baas
  Date: 02-02-18
