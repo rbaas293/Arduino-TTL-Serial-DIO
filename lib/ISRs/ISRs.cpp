@@ -23,31 +23,66 @@ void ISR4()
 }
 void ISR8()
 {
-// Placeholder
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(pinTick));
+    if(trigger == RISING)
+      // Do something
+    else if(trigger == FALLING)
+      // Do something
+    else
+      // Wrong usage (trigger == CHANGE)
 
 }
 void ISR9()
 {
-// Placeholder
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(pinTick));
+    if(trigger == RISING)
+      // Do something
+    else if(trigger == FALLING)
+      // Do something
+    else
+      // Wrong usage (trigger == CHANGE)
 
 }
 void ISR10()
 {
-// Placeholder
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(pinTick));
+    if(trigger == RISING)
+      // Do something
+    else if(trigger == FALLING)
+      // Do something
+    else
+      // Wrong usage (trigger == CHANGE)
 
 }
 void ISR11()
 {
-// Placeholder
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(pinTick));
+    if(trigger == RISING)
+      // Do something
+    else if(trigger == FALLING)
+      // Do something
+    else
+      // Wrong usage (trigger == CHANGE)
 
 }
 void ISR12()
 {
-// Placeholder
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(pinTick));
+    if(trigger == RISING)
+      // Do something
+    else if(trigger == FALLING)
+      // Do something
+    else
+      // Wrong usage (trigger == CHANGE)
 
 }
 void ISR13()
 {
-// Placeholder
-
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(pinTick));
+    if(trigger == RISING)
+      // Do something
+    else if(trigger == FALLING)
+      // Do something
+    else
+      // Wrong usage (trigger == CHANGE) 
 }

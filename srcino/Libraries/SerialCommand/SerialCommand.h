@@ -36,7 +36,7 @@
 // Size of the input buffer in bytes (maximum length of one command plus arguments)
 #define SERIALCOMMAND_BUFFER 32
 // Maximum length of a command excluding the terminating null
-#define SERIALCOMMAND_MAXCOMMANDLENGTH 8
+#define SERIALCOMMAND_MAXCOMMANDLENGTH 4
 
 // Uncomment the next line to run the library in debug mode (verbose messages)
 //#define SERIALCOMMAND_DEBUG
@@ -64,7 +64,7 @@ class SerialCommand {
     // Pointer to the default handler function
     void (*defaultHandler)(const char *);
 
-    char delim[2]; // null-terminated list of character to be used as delimeters for tokenizing (default " ")
+    char delim[2]; // null-terminated list of character to be used as delimeters for tokenizing (default ",")
     char term;     // Character that signals end of command (default '\n')
 
     char buffer[SERIALCOMMAND_BUFFER + 1]; // Buffer of stored characters while waiting for terminator character

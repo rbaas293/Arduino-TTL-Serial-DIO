@@ -33,7 +33,7 @@ SerialCommand::SerialCommand()
     term('\n'),           // default terminator for commands, newline character
     last(NULL)
 {
-  strcpy(delim, " "); // strtok_r needs a null-terminated string
+  strcpy(delim, ","); // strtok_r needs a null-terminated string
   clearBuffer();
 }
 
@@ -103,6 +103,8 @@ void SerialCommand::readSerial() {
             #endif
 
             // Execute the stored handler function for the command
+			Serial.print(command);
+			Serial.print(",");
             (*commandList[i].function)();
             matched = true;
             break;

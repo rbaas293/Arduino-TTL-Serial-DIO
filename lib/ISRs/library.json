@@ -1,0 +1,13 @@
+{
+  "name": "ISRs",
+  "keywords": "Interrupts",
+  "description": "Interupts on any pin.",
+  "authors":
+{
+    "name": "John Smith",
+    "email": "me@john-smith.com",
+    "url": "http://www.john-smith/contact"
+},
+  "frameworks": "arduino",
+  "platforms": "atmelavr"
+}

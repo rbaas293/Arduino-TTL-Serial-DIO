@@ -20,26 +20,21 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 //#include <PinChangeInt.h>
 //#include <PinChangeIntConfig.h>
 #include <PinChangeInterrupt.h>
-#include <PinChangeInterruptBoards.h>
-#include <PinChangeInterruptPins.h>
-#include <PinChangeInterruptSettings.h>
+//#include <PinChangeInterruptBoards.h>
+//#include <PinChangeInterruptPins.h>
+//#include <PinChangeInterruptSettings.h>
 
-/*
- Defined below are the easy to read identifiers for our pins.
-*/
+#define kSerialBaudRate 9600
+
 //PINS 0 & 1 TO BE USED FOR SERIAL R//X AND TX
 
 #define S0 0        //D0  Serial Rx
 #define S1 1        //D1  Serial Tx
 
-
 //DEFINE OUTPUT AND INPUT ALIASES
-
-//DEFAULT: PINS 2 & 3 TO BE USED AS NORMAL OUTPUTS:
 #define O2 2        //D2  MULTI-PURPOSE
 #define O3 3        //D3  MULTI-PURPOSE
 bool AnalogAsDigital = 0; //defaut us 'false'. Change to 'true' if you would like to use Analog pins as Digital:
-
 
 //DEFAULTS
 #define O4 4        //D4  Output
@@ -53,8 +48,6 @@ bool AnalogAsDigital = 0; //defaut us 'false'. Change to 'true' if you would lik
 #define I12 12      //D12 Input
 #define I13 13      //D13 Input
 
-
-
 //Analoge Pins:
   //CAN BE REFERED TO BY 'A_' WHERE '_' IS A THE ANALOGE INPUT NUMBER
   // DEFINE THERE ALIASES HERE
@@ -66,7 +59,7 @@ SerialCommand gSerialCommands;
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
 bool GetNextState(char *iPinNum); //gets the NEXT state of the specified pin number.
 char *i2str(int i, char *buf);    //int to string fuction, cuz sting(int) would not work.
-void SetupSerialCommands(void);
+//void SetupSerialCommands(void);
 //Set Up Variables and Arrays
 unsigned long gScanRate;
 unsigned long gScanRateMin;
@@ -80,13 +73,14 @@ char* gOutAliases[]={"S1", "O2", "O3", "O4", "O5"};
 char* gInAliases[]={"I8", "I9", "I10","I11","I12","I3"};
 char* gCharPins[]={"0","1","2","3","4","5","6","7","8","9","10","11","12","13"};
 //bool O2_State O3_State;
-void setup() {
-// put your setup code here, to run once:
-cli();//stop interrupts
-//DEFAULT CONFIGURATION
 
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+void setup() {
+//cli();//stop interrupts
  //Set Up Objects:
- SetupSerialCommands();
+ SerialCommand();
+ //SetupSerialCommands();
  //Set inital values
  gScanRateMin = 999999;
  gScanRateMax = 0;
@@ -95,21 +89,21 @@ cli();//stop interrupts
  //DEFINE Anolog Pins
  /*if (AnalogAsDigital == true) //If this flag is set, then define A0-A5 as Digital instead of Analog.
  {
-  //SET UP EXT INTERUPTS
-  pinMode(A0, INPUT);
-  pinMode(A1, INPUT);
-  O2_State = LOW;
-  O3_State = LOW;
-  attachInterrupt(digitalPinToInterrupt(O2), ISR2, FALLING); // SYNTAX: attachInterrupt(digitalPinToInterrupt(pin), <ISR-FUNCTION>, mode)
-  attachInterrupt(digitalPinToInterrupt(O3), ISR3, CHANGE);
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT);
  }
  else
  {
   pinMode(A0, INPUT);
   pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+  pinMode(A4, INPUT);
+  pinMode(A5, INPUT);
  }
  */
  //DEFINE OUTPUTS
+ //DEFINE Outputs
  pinMode(O2, OUTPUT);
  pinMode(O3, OUTPUT);
  pinMode(O4, OUTPUT);
@@ -122,8 +116,8 @@ cli();//stop interrupts
  pinMode(I10,INPUT);
  pinMode(I11,INPUT);
  pinMode(I12,INPUT);
- pinMode(I13,INPUT
-
+ pinMode(I13,INPUT);
+//attachPCINT(interrupt, function, mode);
 attachPCINT(digitalPinToPCINT(I8), ISR8, CHANGE);
 attachPCINT(digitalPinToPCINT(I9), ISR9, CHANGE);
 attachPCINT(digitalPinToPCINT(I10), ISR10, CHANGE);
@@ -132,7 +126,7 @@ attachPCINT(digitalPinToPCINT(I12), ISR12, CHANGE);
 attachPCINT(digitalPinToPCINT(I13), ISR13, CHANGE);
 
 Serial.println("READY");
-sei();//allow interrupts
+//sei();//allow interrupts
 digitalWrite(O2, LOW);digitalWrite(O3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
 }
 
@@ -171,22 +165,7 @@ if (O2_State == 0)
 }
 */
 
-void SetupSerialCommands(void)
-{
-  Serial.begin(kSerialBaudRate);
-//The following statments create serial commands to communicate with the ardunioover USB:
-//gSerialCommands.addCommand("<string to call cmd>", <function to execute>);
-  gSerialCommands.addCommand("CONF?", ConfigurePins);   //Configure the Pin definitions
-  gSerialCommands.addCommand("SOUT", SetOutput);        //Sets the specified output to the specified state.
-  gSerialCommands.addCommand("TOUT", ToggleOutput);     //Toggles the specified output from the current output state.
-  gSerialCommands.addCommand("POUT", PulseOutput);      //sets the output high for a specified amount of time.
-  gSerialCommands.addCommand("STAT", GetPinStates);     //gets the current state of each output PIN and displays it to the user.
-  gSerialCommands.addCommand("CSTAT", GetCommaPinStates);     //gets the current state of each output PIN and SENDS BACK AS COMMA SEPERATED LIST. FIRST PARAMETER IS PIN 0 STAT. FROM THERE IT INCRIMENTS BY 1.
-  gSerialCommands.addCommand("PWM", SetPWM);            //sets the specified PWM Pin to output at the specified frequency, duty cycle, and starting phase. (ex. PWM,<pin>,<duty-cycle>,<frequency>,<starting-phase>)
-  gSerialCommands.addCommand("DBUG", DebugPrint);       //Prints debug info that might be usefull
-  gSerialCommands.addCommand("SRT?", CmdQueryScanRate); //Gets the scan rate of the last loop interation.
-  gSerialCommands.setDefaultHandler(CmdUnknown);        //Default Handler used to send back a notification telling the sender that the command is Unknown (ex. UNK,<your-command>)
-}
+
 
 
 bool GetCurState(char *iPinNum) //gets the current state of the specified PIN.
@@ -262,8 +241,25 @@ char *i2str(int i, char *buf) //FUNNCTION TAKEN FROM ONLINE: INT TO STRING
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-SERIAL COMMAND HANDLERS below
+//SERIAL COMMAND HANDLERS below
 ////////////////////////////////////////////////////////////////////////////////////////////
+void SerialCommand(void) //SerialCommand() SetupSerialCommand()
+{
+  Serial.begin(kSerialBaudRate);
+//The following statments create serial commands to communicate with the ardunioover USB:
+//gSerialCommands.addCommand("<string to call cmd>", <function to execute>);
+  gSerialCommands.addCommand("CONF?", ConfigurePins);   //Configure the Pin definitions
+  gSerialCommands.addCommand("SOUT", SetOutput);        //Sets the specified output to the specified state.
+  gSerialCommands.addCommand("TOUT", ToggleOutput);     //Toggles the specified output from the current output state.
+  gSerialCommands.addCommand("POUT", PulseOutput);      //sets the output high for a specified amount of time.
+  gSerialCommands.addCommand("STAT", GetPinStates);     //gets the current state of each output PIN and displays it to the user.
+  gSerialCommands.addCommand("CSTAT", GetCommaPinStates);     //gets the current state of each output PIN and SENDS BACK AS COMMA SEPERATED LIST. FIRST PARAMETER IS PIN 0 STAT. FROM THERE IT INCRIMENTS BY 1.
+  gSerialCommands.addCommand("PWM", SetPWM);            //sets the specified PWM Pin to output at the specified frequency, duty cycle, and starting phase. (ex. PWM,<pin>,<duty-cycle>,<frequency>,<starting-phase>)
+  gSerialCommands.addCommand("DBUG", DebugPrint);       //Prints debug info that might be usefull
+  gSerialCommands.addCommand("SRT?", CmdQueryScanRate); //Gets the scan rate of the last loop interation.
+  gSerialCommands.setDefaultHandler(CmdUnknown);        //Default Handler used to send back a notification telling the sender that the command is Unknown (ex. UNK,<your-command>)
+}
+
 void ConfigurePins(void)
 {
   //Future use.
