@@ -1,15 +1,16 @@
 -IC:\Users\Ryan\.platformio\packages\framework-arduinoavr\cores\arduino
 -IC:\Users\Ryan\.platformio\packages\framework-arduinoavr\variants\standard
--IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\lib\Commands
+-IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\lib\DirectIO
+-IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\lib\ISRs
 -IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\.piolibdeps\PinChangeInterrupt_ID725\src
+-IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\.piolibdeps\SerialCommand_ID173
 -IC:\Users\Ryan\.platformio\packages\framework-arduinoavr\libraries\__cores__\arduino\EEPROM\src
 -IC:\Users\Ryan\.platformio\packages\framework-arduinoavr\libraries\__cores__\arduino\SoftwareSerial\src
 -IC:\Users\Ryan\.platformio\packages\framework-arduinoavr\libraries\Firmata
 -IC:\Users\Ryan\.platformio\packages\framework-arduinoavr\libraries\Firmata\utility
 -IC:\Users\Ryan\.platformio\packages\framework-arduinoavr\libraries\Servo\src
+-IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\lib\Commands
 -IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\lib\DigitalIO\src
--IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\lib\DirectIO
--IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\lib\ISRs
 -IC:\Users\Ryan\OneDrive - University of Cincinnati\mygit\github\arduino\Arduino-TTL-Serial-DIO\lib\_bak
 -IC:\Users\Ryan\.platformio\lib\FastLED_ID126
 -IC:\Users\Ryan\.platformio\lib\SD_ID161
