@@ -1,5 +1,5 @@
 
-#include "Commands.h"
+//#include "Commands.h"
 
 //any #defines go here
 
@@ -19,6 +19,7 @@ void SetOutput(void) //Called using 'SOUT'
      EX. SOUT,04,1          //Sets OUTPUT 4 to the ON state.
      EX. SOUT,05,0          //Sets OUTPUT 5 to the OFF state.
      EX. SOUT,<OUTPUT NUMBER>,0    //Sets the specified OUTPUT to the OFF state.            */
+
 {
   char *OutNum;                 //creates a pointer to hold the first argument
   char *State;                  //creates a pointer to hold the second argument

@@ -66,13 +66,13 @@ SerialCommand gSerialCommands;
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
 bool GetNextState(char *iPinNum); //gets the NEXT state of the specified pin number.
 char *i2str(int i, char *buf);    //int to string fuction, cuz sting(int) would not work.
-
+void SetupSerialCommands(void);
 //Set Up Variables and Arrays
 unsigned long gScanRate;
 unsigned long gScanRateMin;
 unsigned long gScanRateMax;
 unsigned long ScanStartMicros;
-volatile byte O2_State, O3_State;
+bool O2_State, O3_State;
 char gAck[4];
 char gNack[5];
 char gbuf[8];
@@ -131,8 +131,7 @@ attachPCINT(digitalPinToPCINT(I11), ISR11, CHANGE);
 attachPCINT(digitalPinToPCINT(I12), ISR12, CHANGE);
 attachPCINT(digitalPinToPCINT(I13), ISR13, CHANGE);
 
-
- Serial.println("READY");
+Serial.println("READY");
 sei();//allow interrupts
 digitalWrite(O2, LOW);digitalWrite(O3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
 }
@@ -363,10 +362,10 @@ void ToggleOutput(void) //Called using 'TOUT'
         digitalWrite(S1, GetNextState(OutNum));
           break;
         case 2:
-        digitalWrite(P2, GetNextState(OutNum));
+        digitalWrite(O2, GetNextState(OutNum));
           break;
         case 3:
-        digitalWrite(P3, GetNextState(OutNum));
+        digitalWrite(O3, GetNextState(OutNum));
           break;
         case 4:
         digitalWrite(O4, GetNextState(OutNum));
@@ -422,15 +421,15 @@ void PulseOutput(void) //Called using 'POUT'
           Serial.println(result);
           break;
         case 2:
-          digitalWrite(P2, HIGH);
+          digitalWrite(O2, HIGH);
           delay(long(PulseTime));
-          digitalWrite(P2, LOW);
+          digitalWrite(O2, LOW);
           result = gAck;
           break;
         case 3:
-          digitalWrite(P3, HIGH);
+          digitalWrite(O3, HIGH);
           delay(long(PulseTime));
-          digitalWrite(P3, LOW);
+          digitalWrite(O3, LOW);
           break;
           result = gAck;
         case 4:
