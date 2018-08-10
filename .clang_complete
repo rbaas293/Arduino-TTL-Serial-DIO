@@ -1,18 +1,19 @@
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\cores\arduino
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\variants\standard
--IC:\Users\ryanbaas\.platformio\lib\SerialCommand_ID173
+-ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\Commands
+-ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\DirectIO
+-ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\ISRs
+-ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\.piolibdeps\SerialCommand_ID173
+-IC:\Users\ryanbaas\.platformio\lib\PinChangeInterrupt_ID725\src
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\libraries\__cores__\arduino\EEPROM\src
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\libraries\__cores__\arduino\SoftwareSerial\src
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\libraries\Firmata
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\libraries\Firmata\utility
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\libraries\Servo\src
--ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\Commands\src
 -ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\DigitalIO
--ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\DirectIO
--ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\ISRs\src
 -ID:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit\public-github\Arduino\Arduino-TTL-Serial-DIO\lib\_bak
 -IC:\Users\ryanbaas\.platformio\lib\FreeRTOS_ID507\src
--IC:\Users\ryanbaas\.platformio\lib\PinChangeInterrupt_ID725\src
+-IC:\Users\ryanbaas\.platformio\lib\SerialCommand_ID173
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\libraries\__cores__\arduino\HID\src
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\libraries\__cores__\arduino\SPI\src
 -IC:\Users\ryanbaas\.platformio\packages\framework-arduinoavr\libraries\__cores__\arduino\Wire\src
