@@ -3,6 +3,8 @@
 
 #include "Arduino.h"
 
+uint8_t trigger;
+
 void ISR2(); //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
 void ISR3(); //Sends [  STCHG,<PsIN-NUMBER>,<NEW STATE>  ]
 void ISR4();

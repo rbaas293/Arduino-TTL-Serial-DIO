@@ -10,13 +10,12 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 //Included Libraries:
 #include <Arduino.h>
 #include <SerialCommand.h>
-#include <SoftwareSerial.h>
-#include <EEPROM.h>
+//#include <SoftwareSerial.h>
+//#include <EEPROM.h>
 #include <Servo.h>
 //#include "Commands.h"
-#include "ISRs.h"
+//#include "ISRs.h"
 #include "DirectIO.h"
-#define kSerialBaudRate 9600
 //#include <PinChangeInt.h>
 //#include <PinChangeIntConfig.h>
 #include <PinChangeInterrupt.h>
@@ -54,11 +53,36 @@ bool AnalogAsDigital = 0; //defaut us 'false'. Change to 'true' if you would lik
 
 //Initilize Objects:
 SerialCommand gSerialCommands;
-
+void SetupSerialCommands(void);
 //Set Up Functions/Methods:
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
 bool GetNextState(char *iPinNum); //gets the NEXT state of the specified pin number.
 char *i2str(int i, char *buf);    //int to string fuction, cuz sting(int) would not work.
+unsigned long ElapsedTime(unsigned long iStartTime, unsigned long iCurTime);
+
+//Declare Serial Command Functions
+//void SetupSerialCommands(void);
+void ConfigurePins(void);
+void SetOutput(void); //Called using 'SOUT'
+void ToggleOutput(void); //Called using 'TOUT'
+void PulseOutput(void); //Called using 'POUT'
+void GetPinStates(void); //gets the current state of each output PIN and displays it to the user.
+void GetCommaPinStates(void);
+void SetPWM(void);
+void CmdUnknown(const char *iCommand); //Called on anything sent that is not defined as a command (ex. 'TPGTRIG')
+void DebugPrint(void); //FUNCTION FOR SERIAL DEBUGING
+void CmdQueryScanRate(void); //Called using 'SRT?'
+
+void ISR2(void); //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
+void ISR3(void); //Sends [  STCHG,<PsIN-NUMBER>,<NEW STATE>  ]
+void ISR4(void);
+void ISR8(void);
+void ISR9(void);
+void ISR10(void);
+void ISR11(void);
+void ISR12(void);
+void ISR13(void);
+
 //void SetupSerialCommands(void);
 //Set Up Variables and Arrays
 unsigned long gScanRate;
@@ -79,7 +103,7 @@ char* gCharPins[]={"0","1","2","3","4","5","6","7","8","9","10","11","12","13"};
 void setup() {
 //cli();//stop interrupts
  //Set Up Objects:
- SerialCommand();
+ //SetupSerialCommands();
  //SetupSerialCommands();
  //Set inital values
  gScanRateMin = 999999;
@@ -125,6 +149,20 @@ attachPCINT(digitalPinToPCINT(I11), ISR11, CHANGE);
 attachPCINT(digitalPinToPCINT(I12), ISR12, CHANGE);
 attachPCINT(digitalPinToPCINT(I13), ISR13, CHANGE);
 
+Serial.begin(kSerialBaudRate);
+//The following statments create serial commands to communicate with the ardunioover USB:
+//gSerialCommands.addCommand("<string to call cmd>", <function to execute>);
+gSerialCommands.addCommand("CONF?", ConfigurePins);   //Configure the Pin definitions
+gSerialCommands.addCommand("SOUT", SetOutput);        //Sets the specified output to the specified state.
+gSerialCommands.addCommand("TOUT", ToggleOutput);     //Toggles the specified output from the current output state.
+gSerialCommands.addCommand("POUT", PulseOutput);      //sets the output high for a specified amount of time.
+gSerialCommands.addCommand("STAT", GetPinStates);     //gets the current state of each output PIN and displays it to the user.
+gSerialCommands.addCommand("CSTAT", GetCommaPinStates);     //gets the current state of each output PIN and SENDS BACK AS COMMA SEPERATED LIST. FIRST PARAMETER IS PIN 0 STAT. FROM THERE IT INCRIMENTS BY 1.
+gSerialCommands.addCommand("PWM", SetPWM);            //sets the specified PWM Pin to output at the specified frequency, duty cycle, and starting phase. (ex. PWM,<pin>,<duty-cycle>,<frequency>,<starting-phase>)
+gSerialCommands.addCommand("DBUG", DebugPrint);       //Prints debug info that might be usefull
+gSerialCommands.addCommand("SRT?", CmdQueryScanRate); //Gets the scan rate of the last loop interation.
+gSerialCommands.setDefaultHandler(CmdUnknown);        //Default Handler used to send back a notification telling the sender that the command is Unknown (ex. UNK,<your-command>)
+
 Serial.println("READY");
 //sei();//allow interrupts
 digitalWrite(O2, LOW);digitalWrite(O3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
@@ -151,12 +189,13 @@ ScanStartMicros = micros();
   }
 */
 if (O2_State == 0)
-
+ cli();//stop interrupts
  // check for serial activity
   gSerialCommands.readSerial();
   gScanRate = ElapsedTime(ScanStartMicros, micros());
   if (gScanRate < gScanRateMin) gScanRateMin = gScanRate;
   if (gScanRate > gScanRateMax) gScanRateMax = gScanRate;
+  sei();//allow interrupts
 }
 
 /*char GetSerialCommandTxt(char cmd, char arg1, char arg2)
@@ -243,7 +282,8 @@ char *i2str(int i, char *buf) //FUNNCTION TAKEN FROM ONLINE: INT TO STRING
 ////////////////////////////////////////////////////////////////////////////////////////////
 //SERIAL COMMAND HANDLERS below
 ////////////////////////////////////////////////////////////////////////////////////////////
-void SerialCommand(void) //SerialCommand() SetupSerialCommand()
+/*
+void SetupSerialCommands(void) //SerialCommand() SetupSerialCommand()
 {
   Serial.begin(kSerialBaudRate);
 //The following statments create serial commands to communicate with the ardunioover USB:
@@ -259,10 +299,10 @@ void SerialCommand(void) //SerialCommand() SetupSerialCommand()
   gSerialCommands.addCommand("SRT?", CmdQueryScanRate); //Gets the scan rate of the last loop interation.
   gSerialCommands.setDefaultHandler(CmdUnknown);        //Default Handler used to send back a notification telling the sender that the command is Unknown (ex. UNK,<your-command>)
 }
-
+*/
 void ConfigurePins(void)
 {
-  //Future use.
+;;  //Future use.
 }
 void SetOutput(void) //Called using 'SOUT'
 // FINISHED: Completed by Ryan Baas Date: 20170206
@@ -626,7 +666,7 @@ void DebugPrint(void) //FUNCTION FOR SERIAL DEBUGING
   */
 }
 
-void CmdQueryScanRate(void) //Called using 'SRT?'
+void CmdQueryScanRate() //Called using 'SRT?'
 /* COMMAND INFO & EXAMPLES:
  FORMAT: SRT?               //Command has no parameters.
      EX. SRT?               //Returns the scan rate of the previous microprocessor loop.  */
@@ -636,4 +676,103 @@ void CmdQueryScanRate(void) //Called using 'SRT?'
   Serial.print(gScanRateMin);
   Serial.print(",");
   Serial.println(gScanRateMax);
+}
+//////////////////////////////////////////////////////////////////////////////////////////////
+// START ISRs
+/////////////////////////////////////////////////////////////////////////////////////////////
+void ISR2() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
+{
+  //O2_State = !O2_State;
+  //Serial.print("STCHG,2,"); //Send STCHG. AKA STATE CHANGE
+  //Serial.println(O2_State);
+}
+
+void ISR3() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
+{
+  //O3_State = !O3_State;
+  //Serial.print("STCHG,3,"); //Send STCHG. AKA STATE CHANGE
+  //Serial.println(O3_State);
+}
+
+void ISR4()
+{
+// Placeholder
+
+}
+void ISR8()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I8));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
+
+}
+void ISR9()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I9));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+      // Wrong usage (trigger == CHANGE)
+;;
+}
+void ISR10()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I10));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
+
+}
+void ISR11()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I11));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
+
+}
+void ISR12()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I12));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
+
+}
+void ISR13()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I13));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
 }

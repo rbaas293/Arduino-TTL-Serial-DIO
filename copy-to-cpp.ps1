@@ -1,15 +1,21 @@
 # Script to copy The .ino to a cpp
 
 # Set directory VARIABLES:
-$piolibdir="$env:pwd\lib"
-$piosrcdir="$env:pwd\src"
-$sketchdir="$env:pwd\srcino"
-$sketchlibdir="$env:pwd\srcino\Libraries"
+#$projdir="$env:Onedrive\Documents\mygit\public-github\Arduino\ArduinoTTL-Serial-DIO"
+
+Set-Location D:
+Set-Location $projdir
+
+
+$piolibdir="$projdir\lib"
+$piosrcdir="$projdir\src"
+$sketchdir="$projdir\srcino"
+$sketchlibdir="$projdir\srcino\Libraries"
 
 # Copy Libraries form lib to arduino sketch lib folder:
-cp $piolibdir $sketchlibdir
+Copy-Item -Recurse $piolibdir -Destination $sketchlibdir
 
 # Copy src\src.cpp to srcino\srcino.ino
-cp "$piosrcdir\src.cpp" $sketchdir
+Copy-Item "$piosrcdir\src.cpp" $sketchdir
 
-mv "$sketchdir\src.cpp" "$sketchdir\srcino.ino"
+Move-Item -Path "$sketchdir\src.cpp" -Destination "$sketchdir\srcino.ino"
