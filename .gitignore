@@ -2,4 +2,11 @@
 .piolibdeps
 .clang_complete
 .gcc-flags.json
-lib\_bak
+.travis.yml 
+
+
+piolibdeps\
+.pioenvs\
+lib\_bak\
+# ignore all logs
+*.log
