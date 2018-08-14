@@ -9,6 +9,7 @@ This repository holds the code, libraries, and README created for use with a out
 * At varius times, it becomes handy to upload to our board using the `Arduino IDE`. This is where the directory `srcino\` comes into play. This directory is designed to be a `Arduino Sketch` folder, so its contents include a `src\srcino.ino` file and the subdirectory `srcino\Libraries\` Folder. If you need to use the arduino IDE, ~~Run the `cpp-to-ino` script~~, or you must copy the contents `src\src.cpp` to `srcino\srcino.ino` and copy the subdirectories of `lib\` to `srcino\libraries` (in order to make sure you are using the most up to date libraries).
 
 
+
 ## Command Info and Examples
 ### 1. Set Output
 
