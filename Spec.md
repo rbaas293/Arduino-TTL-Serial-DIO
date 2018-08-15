@@ -1,0 +1,5 @@
+## Spec and Scope of this Project
+* THE SYSTEM MUST MAINTAIN THE SAME CAPABLITIES AS TPG2 Version 3.0
+* THE SYSTEM MUST
+
+*

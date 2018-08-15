@@ -53,13 +53,13 @@ bool AnalogAsDigital = 0; //defaut us 'false'. Change to 'true' if you would lik
 
 //Initilize Objects:
 SerialCommand gSerialCommands;
-void SetupSerialCommands(void);
+//void SetupSerialCommands(void);
 //Set Up Functions/Methods:
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
 bool GetNextState(char *iPinNum); //gets the NEXT state of the specified pin number.
 char *i2str(int i, char *buf);    //int to string fuction, cuz sting(int) would not work.
 unsigned long ElapsedTime(unsigned long iStartTime, unsigned long iCurTime);
-
+void myDelay(int ix);
 //Declare Serial Command Functions
 //void SetupSerialCommands(void);
 void ConfigurePins(void);
@@ -168,33 +168,19 @@ Serial.println("READY");
 digitalWrite(O2, LOW);digitalWrite(O3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop()
+{
+  // to run repeatedly:
 ScanStartMicros = micros();
 
-//Future Use
- /* has a new command been set?
-    if ( (gTriggerManual.Triggered() == true) || (gTriggerPLC.Triggered() == true) || (gTriggerUSB.Triggered() == true) )
-    {
-      pulseLenIn0_1Ms = gActivePulseTime->GetPulseTimeIn0_1ms();
-      gRunMode.GetRunModeText3(strRunMode);
-      gDiagLedMode = false;
-      Serial.print(" MOD,");
-      Serial.println(strRunMode);
-      Serial.print("TPT,");
-      Serial.println( pulseLenIn0_1Ms / 10.0);
-
-      gPulseStateMachine.Triggered(pulseLenIn0_1Ms);
-    }
-  }
-*/
-if (O2_State == 0)
  cli();//stop interrupts
+
  // check for serial activity
   gSerialCommands.readSerial();
   gScanRate = ElapsedTime(ScanStartMicros, micros());
   if (gScanRate < gScanRateMin) gScanRateMin = gScanRate;
   if (gScanRate > gScanRateMax) gScanRateMax = gScanRate;
+
   sei();//allow interrupts
 }
 
@@ -277,6 +263,13 @@ char *i2str(int i, char *buf) //FUNNCTION TAKEN FROM ONLINE: INT TO STRING
   }
   buf[l]=0;
   return buf;
+}
+
+void myDelay(int ix)   {
+  for(int i=0; i<=ix; i++)
+  {
+    delayMicroseconds(1000);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -496,9 +489,9 @@ void GetPinStates(void) //gets the current state of each output PIN and displays
 {                       //CALLED BY 'STAT'   :     Completed by Ryan Baas Date: 20170206
 
   char *PinNum, *result;
-  int j;
+  //int j; // corisponds to inputs state return
   //char* PinStatestxt[4];
-  bool PinState;
+  //bool PinState; // corisponds to inputs state return
 
   ////Load command arguments into variables & initalize result:
   PinNum = gSerialCommands.next();
