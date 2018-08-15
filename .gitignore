@@ -2,9 +2,10 @@
 .piolibdeps
 .clang_complete
 .gcc-flags.json
-.travis.yml 
+.travis.yml
 
 
+srcino\
 piolibdeps\
 .pioenvs\
 lib\_bak\
