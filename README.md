@@ -6,7 +6,8 @@ This repository holds the code, libraries, and README created for use with a out
   - I will be including commands to install this enviorment soon.
 * The working source file for our main is located in `src\src.cpp`. Please do all editing in this file.
 * The `lib\` directory is whre all user created or third party libraries that are not part of PlatformIOs library database go. The Library Dependency Finder (or `LDF`) will search this folder at each build time.
-* At varius times, it becomes handy to upload to our board using the `Arduino IDE`. This is where the directory `srcino\` comes into play. This directory is designed to be a `Arduino Sketch` folder, so its contents include a `src\srcino.ino` file and the subdirectory `srcino\Libraries\` Folder. If you need to use the arduino IDE, ~~Run the `cpp-to-ino` script~~, or you must copy the contents `src\src.cpp` to `srcino\srcino.ino` and copy the subdirectories of `lib\` to `srcino\libraries` (in order to make sure you are using the most up to date libraries).
+* At varius times, it becomes handy to upload to our board using the `Arduino IDE`. This is where the directory `srcino\` comes into play. This directory is designed to be a `Arduino Sketch` folder, hence its contents include a `src\srcino.ino` file and the subdirectory `srcino\Libraries\`.
+    - **If you must to use the Arduino IDE**, _Run the `cpp-to-ino.ps1` script, or copy the contents `src\src.cpp` to `srcino\srcino.ino` and copy the subdirectories of `lib\` to `srcino\libraries\`_ (This is to make sure you are using the most up to date libraries).
 
 
 

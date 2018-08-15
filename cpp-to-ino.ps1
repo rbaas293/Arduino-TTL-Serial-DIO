@@ -31,37 +31,36 @@ function Remove-Any-File-Force ($Target) {
     }
 }
 
+$wrongprojdir="D:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit"
 # Set directory VARIABLES:
-$projdir=$PWD
 
-#Set-Location D:
-#Set-Location $PWD
+$projdir=Get-Location # This should work, but everytime I use it, it brings in the wrong present location. it sends me "D:\Users\ryanbaas\OneDrive - Signalysis, Inc\Documents\mygit"
 
-
-$piolibdir="$projdir\lib"
-$piosrcdir="$projdir\src"
-$sketchdir="$projdir\srcino"
-$sketchlibdir="$projdir\srcino\Libraries"
-# $foldersToDelete =
-# Copy Libraries form lib to arduino sketch lib folder:
-#Get-ChildItem -Path $sketchlibdir -Directory -Recurse | Remove-Item -Recurse -Force -Exclude .git\
-if (Test-Path $sketchlibdir)
+If ($projdir -In $wrongprojdir)
 {
-  $items = Get-ChildItem -Path $sketchlibdir -Directory -Recurse
-  foreach ($item in $items)
-  {
-    if (Test-Path $item)
-    {
-      cmd /c rmdir .\$item
-    #  Remove-Item $item -Recurse -Force -Confirm:$false
-    }
-  }
-  # Remove-Item $sketchlibdir -Force -Confirm:$false
+  $projdir="D:\mygit\public-github\arduino\Arduino-TTL-Serial-DIO" # Manuel Override (uncomment this line)
 }
-Copy-Item -Recurse $piolibdir -Destination $sketchlibdir
+
+Write-Host "The active project directory is: $projdir"
+
+$piolibdir="$projdir\lib\"
+$piosrcdir="$projdir\src\"
+$sketchdir="$projdir\srcino\"
+$sketchlibdir="$projdir\srcino\Libraries\"
+
+# Tell them where the libraries are getting copied to.
+Write-Host "Copping The Libraries to Desitination: $sketchlibdir"
+
+# Remove The Libraries Folder in Sketch directory so we can copy into it
+#Remove-Any-File-Force ($Sketchlibdir)
+
+# Copy Libraries form pio lib to Arduino Libraries folder:
+#Copy-Item -Recurse $piolibdir -Destination $sketchlibdir
 
 # Copy src\src.cpp to srcino\srcino.ino
-Get-ChildItem -Path $sketchdir -Include *.ino -Recurse | Remove-Item
-Copy-Item "$piosrcdir\src.cpp" -Destination "$sketchdir\srcino.ino"
+#Get-ChildItem -Path $sketchdir -Include *.ino -Recurse | Remove-Item  # Remove it first
+#Copy-Item "$piosrcdir\src.cpp" -Destination "$sketchdir\srcino.ino"   # Copy it to a new name.
 
-#Move-Item -Path "$sketchdir\src.cpp" -Destination "$sketchdir\srcino.ino"
+#CRLF DONE!
+#Write-Host "Contents of src\src.cpp are now copied to srcino\srcino.ino"
+Write-Host Done!
