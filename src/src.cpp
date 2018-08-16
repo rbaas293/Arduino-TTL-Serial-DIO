@@ -2,40 +2,43 @@
  By: Ryan Baas
  Date: 02-02-18
 
-
 This code is designed to make a arduino into a simple Serial DIO Controller. It is usefull for any application requiring TTL digital logic.
-04-16-18: VERSION 1.0
+04-16-18: ALPHA/POC VERSION 1.0
+08-16-18: ITS BEEN 4 MONTHS SINCE THIS PROJECT WAS STARTED AS A POC. WOW TIME FLIES
 */
-
 //Included Libraries:
 #include <Arduino.h>
+#include <string.h>
 #include <SerialCommand.h>
 //#include <SoftwareSerial.h>
 //#include <EEPROM.h>
 #include <Servo.h>
 //#include "Commands.h"
 //#include "ISRs.h"
-#include "DirectIO.h"
+#include <DirectIO.h>
 //#include <PinChangeInt.h>
 //#include <PinChangeIntConfig.h>
 #include <PinChangeInterrupt.h>
 //#include <PinChangeInterruptBoards.h>
 //#include <PinChangeInterruptPins.h>
 //#include <PinChangeInterruptSettings.h>
-
+#define str(x) #x //just playin around.
 #define kSerialBaudRate 9600
 
-//PINS 0 & 1 TO BE USED FOR SERIAL R//X AND TX
+#ifndef AVR_UNO
+    #ifndef AVR_MEGA2560
+    #define AVR_UNO //If both are not defined, Then Define one of them
+    #define MANDEF // SET A FLAG IF THE BOARD WAS NOT AUTO DEFINED. Stands for: MANUALY DEFINED
+    #endif
+#endif
 
+#ifdef AVR_UNO //If the board is an Arduino UNO
+//PINS 0 & 1 TO BE USED FOR SERIAL R//X AND TX
 #define S0 0        //D0  Serial Rx
 #define S1 1        //D1  Serial Tx
-
 //DEFINE OUTPUT AND INPUT ALIASES
 #define O2 2        //D2  MULTI-PURPOSE
 #define O3 3        //D3  MULTI-PURPOSE
-bool AnalogAsDigital = 0; //defaut us 'false'. Change to 'true' if you would like to use Analog pins as Digital:
-
-//DEFAULTS
 #define O4 4        //D4  Output
 #define O5 5        //D5  Output
 #define O6 6        //D6  Output
@@ -47,10 +50,27 @@ bool AnalogAsDigital = 0; //defaut us 'false'. Change to 'true' if you would lik
 #define I12 12      //D12 Input
 #define I13 13      //D13 Input
 
-//Analoge Pins:
-  //CAN BE REFERED TO BY 'A_' WHERE '_' IS A THE ANALOGE INPUT NUMBER
-  // DEFINE THERE ALIASES HERE
+#endif
 
+#ifdef AVR_MEGA2560 //If the board is an Arduino MEGA 2560
+//PINS 0 & 1 TO BE USED FOR SERIAL R//X AND TX
+#define S0 0        //D0  Serial Rx
+#define S1 1        //D1  Serial Tx
+//DEFINE OUTPUT AND INPUT ALIASES
+#define O2 2        //D2  MULTI-PURPOSE
+#define O3 3        //D3  MULTI-PURPOSE
+#define O4 4        //D4  Output
+#define O5 5        //D5  Output
+#define O6 6        //D6  Output
+#define O7 7        //D7  Output
+#define I8 8        //D8  Input
+#define I9 9        //D9  Input
+#define I10 10      //D10 Input
+#define I11 11      //D11 Input
+#define I12 12      //D12 Input
+#define I13 13      //D13 Input
+
+#endif
 //Initilize Objects:
 SerialCommand gSerialCommands;
 //void SetupSerialCommands(void);
@@ -60,6 +80,7 @@ bool GetNextState(char *iPinNum); //gets the NEXT state of the specified pin num
 char *i2str(int i, char *buf);    //int to string fuction, cuz sting(int) would not work.
 unsigned long ElapsedTime(unsigned long iStartTime, unsigned long iCurTime);
 void myDelay(int ix);
+
 //Declare Serial Command Functions
 //void SetupSerialCommands(void);
 void ConfigurePins(void);
@@ -90,34 +111,28 @@ unsigned long gScanRateMin;
 unsigned long gScanRateMax;
 unsigned long ScanStartMicros;
 bool O2_State, O3_State;
+bool AnalogAsDigital = 0; //defaut us 'false'. Change to 'true' if you would like to use Analog pins as Digital:
 char gAck[4];
 char gNack[5];
 char gbuf[8];
 char* gOutAliases[]={"S1", "O2", "O3", "O4", "O5"};
 char* gInAliases[]={"I8", "I9", "I10","I11","I12","I3"};
 char* gCharPins[]={"0","1","2","3","4","5","6","7","8","9","10","11","12","13"};
-//bool O2_State O3_State;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
-//cli();//stop interrupts
- //Set Up Objects:
+ //cli();//stop interrupts
+
  //SetupSerialCommands();
- //SetupSerialCommands();
- //Set inital values
- gScanRateMin = 999999;
- gScanRateMax = 0;
- strcpy(gAck, "ACK");
- strcpy(gNack, "NACK");
+
  //DEFINE Anolog Pins
- /*if (AnalogAsDigital == true) //If this flag is set, then define A0-A5 as Digital instead of Analog.
+ if (AnalogAsDigital == true) //If this flag is set, then define A0-A5 as Digital instead of Analog.
  {
   pinMode(A0, OUTPUT);
   pinMode(A1, OUTPUT);
  }
- else
- {
+ else{
   pinMode(A0, INPUT);
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
@@ -125,9 +140,7 @@ void setup() {
   pinMode(A4, INPUT);
   pinMode(A5, INPUT);
  }
- */
  //DEFINE OUTPUTS
- //DEFINE Outputs
  pinMode(O2, OUTPUT);
  pinMode(O3, OUTPUT);
  pinMode(O4, OUTPUT);
@@ -150,6 +163,7 @@ attachPCINT(digitalPinToPCINT(I12), ISR12, CHANGE);
 attachPCINT(digitalPinToPCINT(I13), ISR13, CHANGE);
 
 Serial.begin(kSerialBaudRate);
+
 //The following statments create serial commands to communicate with the ardunioover USB:
 //gSerialCommands.addCommand("<string to call cmd>", <function to execute>);
 gSerialCommands.addCommand("CONF?", ConfigurePins);   //Configure the Pin definitions
@@ -163,9 +177,27 @@ gSerialCommands.addCommand("DBUG", DebugPrint);       //Prints debug info that m
 gSerialCommands.addCommand("SRT?", CmdQueryScanRate); //Gets the scan rate of the last loop interation.
 gSerialCommands.setDefaultHandler(CmdUnknown);        //Default Handler used to send back a notification telling the sender that the command is Unknown (ex. UNK,<your-command>)
 
+//Set inital values
+gScanRateMin = 999999;
+gScanRateMax = 0;
+strcpy(gAck, "ACK");
+strcpy(gNack, "NACK");
+digitalWrite(O2, LOW);digitalWrite(O3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
+///////////////////TESTING///////////////////////////////
+#ifdef MANDEF
+Serial.print("Board is manually defined as: ");
+#else
+Serial.print("Board = ")
+#endif
+
+#ifdef AVR_UNO
+Serial.println("AVR_UNO");
+#elif defined AVR_MEGA2560
+Serial.println("AVR_MEGA2560");
+#endif
+///////////////////TESTING///////////////////////////////
 Serial.println("READY");
 //sei();//allow interrupts
-digitalWrite(O2, LOW);digitalWrite(O3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
 }
 
 void loop()
@@ -185,13 +217,7 @@ ScanStartMicros = micros();
 }
 
 /*char GetSerialCommandTxt(char cmd, char arg1, char arg2)
-{
-
-}
-*/
-
-
-
+{;;} */
 
 bool GetCurState(char *iPinNum) //gets the current state of the specified PIN.
 {
