@@ -1,25 +1,7 @@
 
-#include "Commands.h"
+//#include "Commands.h"
 
 //any #defines go here
-
-//Serial Command Function Initilaization
-void SetupSerialCommands(void)
-{
-  Serial.begin(kSerialBaudRate);
-//The following statments create serial commands to communicate with the ardunioover USB:
-//gSerialCommands.addCommand("<string to call cmd>", <function to execute>);
-  gSerialCommands.addCommand("CONF?", ConfigurePins);   //Configure the Pin definitions
-  gSerialCommands.addCommand("SOUT", SetOutput);        //Sets the specified output to the specified state.
-  gSerialCommands.addCommand("TOUT", ToggleOutput);     //Toggles the specified output from the current output state.
-  gSerialCommands.addCommand("POUT", PulseOutput);      //sets the output high for a specified amount of time.
-  gSerialCommands.addCommand("STAT", GetPinStates);     //gets the current state of each output PIN and displays it to the user.
-  gSerialCommands.addCommand("CSTAT", GetCommaPinStates);     //gets the current state of each output PIN and SENDS BACK AS COMMA SEPERATED LIST. FIRST PARAMETER IS PIN 0 STAT. FROM THERE IT INCRIMENTS BY 1.
-  gSerialCommands.addCommand("PWM", SetPWM);            //sets the specified PWM Pin to output at the specified frequency, duty cycle, and starting phase. (ex. PWM,<pin>,<duty-cycle>,<frequency>,<starting-phase>)
-  gSerialCommands.addCommand("DBUG", DebugPrint);       //Prints debug info that might be usefull
-  gSerialCommands.addCommand("SRT?", CmdQueryScanRate); //Gets the scan rate of the last loop interation.
-  gSerialCommands.setDefaultHandler(CmdUnknown);        //Default Handler used to send back a notification telling the sender that the command is Unknown (ex. UNK,<your-command>)
-}
 
 
 
@@ -37,6 +19,7 @@ void SetOutput(void) //Called using 'SOUT'
      EX. SOUT,04,1          //Sets OUTPUT 4 to the ON state.
      EX. SOUT,05,0          //Sets OUTPUT 5 to the OFF state.
      EX. SOUT,<OUTPUT NUMBER>,0    //Sets the specified OUTPUT to the OFF state.            */
+
 {
   char *OutNum;                 //creates a pointer to hold the first argument
   char *State;                  //creates a pointer to hold the second argument

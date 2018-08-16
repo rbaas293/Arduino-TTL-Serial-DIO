@@ -4,7 +4,7 @@
 #include "SerialCommand.h"
 
 //Declare Serial Command Functions
-void SetupSerialCommands(void);
+//void SetupSerialCommands(void);
 void ConfigurePins(void);
 void SetOutput(void); //Called using 'SOUT'
 void ToggleOutput(void); //Called using 'TOUT'

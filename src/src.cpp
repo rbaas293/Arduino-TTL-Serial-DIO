@@ -2,101 +2,147 @@
  By: Ryan Baas
  Date: 02-02-18
 
- 
 This code is designed to make a arduino into a simple Serial DIO Controller. It is usefull for any application requiring TTL digital logic.
-04-16-18: VERSION 1.0
-*/ 
-
+04-16-18: ALPHA/POC VERSION 1.0
+08-16-18: ITS BEEN 4 MONTHS SINCE THIS PROJECT WAS STARTED AS A POC. WOW TIME FLIES
+*/
 //Included Libraries:
+#include <Arduino.h>
+#include <string.h>
 #include <SerialCommand.h>
-#include <SoftwareSerial.h>
-#include <EEPROM.h>
+//#include <SoftwareSerial.h>
+//#include <EEPROM.h>
 #include <Servo.h>
+//#include "Commands.h"
+//#include "ISRs.h"
+#include <DirectIO.h>
+//#include <PinChangeInt.h>
+//#include <PinChangeIntConfig.h>
+#include <PinChangeInterrupt.h>
+//#include <PinChangeInterruptBoards.h>
+//#include <PinChangeInterruptPins.h>
+//#include <PinChangeInterruptSettings.h>
+#define str(x) #x //just playin around.
 #define kSerialBaudRate 9600
 
-/*
- Defined below are the easy to read identifiers for our pins.
-*/
-//PINS 0 & 1 TO BE USED FOR SERIAL RX AND TX
-  
+#ifndef AVR_UNO
+    #ifndef AVR_MEGA2560
+    #define AVR_UNO //If both are not defined, Then Define one of them
+    #define MANDEF // SET A FLAG IF THE BOARD WAS NOT AUTO DEFINED. Stands for: MANUALY DEFINED
+    #endif
+#endif
+
+#ifdef AVR_UNO //If the board is an Arduino UNO
+//PINS 0 & 1 TO BE USED FOR SERIAL R//X AND TX
 #define S0 0        //D0  Serial Rx
 #define S1 1        //D1  Serial Tx
-
-
 //DEFINE OUTPUT AND INPUT ALIASES
-
-
-//DEFAULT: PINS 2 & 3 TO BE USED AS NORMAL OUTPUTS:
-#define P2 2        //D2  MULTI-PURPOSE
-#define P3 3        //D3  MULTI-PURPOSE
-bool ExtInterrupts = true; //defaut us 'false'. Change to 'true' if you would like to use pins 2 and 3 as external interupts:
-
-
-//DEFAULTS
-#define O4 4        //D4  Output 
-#define O5 5        //D5  Output 
+#define O2 2        //D2  MULTI-PURPOSE
+#define O3 3        //D3  MULTI-PURPOSE
+#define O4 4        //D4  Output
+#define O5 5        //D5  Output
 #define O6 6        //D6  Output
-#define O7 7        //D7  Output  
+#define O7 7        //D7  Output
 #define I8 8        //D8  Input
 #define I9 9        //D9  Input
 #define I10 10      //D10 Input
-#define I11 11      //D11 PWM Output
+#define I11 11      //D11 Input
 #define I12 12      //D12 Input
 #define I13 13      //D13 Input
 
-//Analoge Pins:
-  //CAN BE REFERED TO BY 'A_' WHERE '_' IS A THE ANALOGE INPUT NUMBER
-  // DEFINE THERE ALIASES HERE
+#endif
 
+#ifdef AVR_MEGA2560 //If the board is an Arduino MEGA 2560
+//PINS 0 & 1 TO BE USED FOR SERIAL R//X AND TX
+#define S0 0        //D0  Serial Rx
+#define S1 1        //D1  Serial Tx
+//DEFINE OUTPUT AND INPUT ALIASES
+#define O2 2        //D2  MULTI-PURPOSE
+#define O3 3        //D3  MULTI-PURPOSE
+#define O4 4        //D4  Output
+#define O5 5        //D5  Output
+#define O6 6        //D6  Output
+#define O7 7        //D7  Output
+#define I8 8        //D8  Input
+#define I9 9        //D9  Input
+#define I10 10      //D10 Input
+#define I11 11      //D11 Input
+#define I12 12      //D12 Input
+#define I13 13      //D13 Input
+
+#endif
 //Initilize Objects:
 SerialCommand gSerialCommands;
-
+//void SetupSerialCommands(void);
 //Set Up Functions/Methods:
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
 bool GetNextState(char *iPinNum); //gets the NEXT state of the specified pin number.
 char *i2str(int i, char *buf);    //int to string fuction, cuz sting(int) would not work.
+unsigned long ElapsedTime(unsigned long iStartTime, unsigned long iCurTime);
+void myDelay(int ix);
 
+//Declare Serial Command Functions
+//void SetupSerialCommands(void);
+void ConfigurePins(void);
+void SetOutput(void); //Called using 'SOUT'
+void ToggleOutput(void); //Called using 'TOUT'
+void PulseOutput(void); //Called using 'POUT'
+void GetPinStates(void); //gets the current state of each output PIN and displays it to the user.
+void GetCommaPinStates(void);
+void SetPWM(void);
+void CmdUnknown(const char *iCommand); //Called on anything sent that is not defined as a command (ex. 'TPGTRIG')
+void DebugPrint(void); //FUNCTION FOR SERIAL DEBUGING
+void CmdQueryScanRate(void); //Called using 'SRT?'
+
+void ISR2(void); //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
+void ISR3(void); //Sends [  STCHG,<PsIN-NUMBER>,<NEW STATE>  ]
+void ISR4(void);
+void ISR8(void);
+void ISR9(void);
+void ISR10(void);
+void ISR11(void);
+void ISR12(void);
+void ISR13(void);
+
+//void SetupSerialCommands(void);
 //Set Up Variables and Arrays
 unsigned long gScanRate;
 unsigned long gScanRateMin;
 unsigned long gScanRateMax;
 unsigned long ScanStartMicros;
-volatile byte P2_State, P3_State;
+bool O2_State, O3_State;
+bool AnalogAsDigital = 0; //defaut us 'false'. Change to 'true' if you would like to use Analog pins as Digital:
 char gAck[4];
 char gNack[5];
 char gbuf[8];
-char* gOutAliases[]={"S1", "P2", "P3", "O4", "O5"};
+char* gOutAliases[]={"S1", "O2", "O3", "O4", "O5"};
 char* gInAliases[]={"I8", "I9", "I10","I11","I12","I3"};
 char* gCharPins[]={"0","1","2","3","4","5","6","7","8","9","10","11","12","13"};
 
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
-// put your setup code here, to run once:
-cli();//stop interrupts
-//DEFAULT CONFIGURATION  
+ //cli();//stop interrupts
 
- //Set Up Objects:
- SetupSerialCommands();
- //Set inital values
- gScanRateMin = 999999;
- gScanRateMax = 0;
- strcpy(gAck, "ACK");
- strcpy(gNack, "NACK");
+ //SetupSerialCommands();
+
+ //DEFINE Anolog Pins
+ if (AnalogAsDigital == true) //If this flag is set, then define A0-A5 as Digital instead of Analog.
+ {
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT);
+ }
+ else{
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+  pinMode(A4, INPUT);
+  pinMode(A5, INPUT);
+ }
  //DEFINE OUTPUTS
- if (ExtInterrupts == true) //If external interrupts are used, then define them as inputs instead of outputs.
- {
-  //SET UP EXT INTERUPTS
-  pinMode(P2, INPUT);
-  pinMode(P3, INPUT);
-  P2_State = LOW;
-  P3_State = LOW;
-  attachInterrupt(digitalPinToInterrupt(P2), ISR2, FALLING); // SYNTAX: attachInterrupt(digitalPinToInterrupt(pin), <ISR-FUNCTION>, mode)
-  attachInterrupt(digitalPinToInterrupt(P3), ISR3, CHANGE);
- }
- else
- {
-  pinMode(P2, OUTPUT);
-  pinMode(P3, OUTPUT);
- }
+ pinMode(O2, OUTPUT);
+ pinMode(O3, OUTPUT);
  pinMode(O4, OUTPUT);
  pinMode(O5, OUTPUT);
  pinMode(O6, OUTPUT);
@@ -108,64 +154,155 @@ cli();//stop interrupts
  pinMode(I11,INPUT);
  pinMode(I12,INPUT);
  pinMode(I13,INPUT);
+//attachPCINT(interrupt, function, mode);
+attachPCINT(digitalPinToPCINT(I8), ISR8, CHANGE);
+attachPCINT(digitalPinToPCINT(I9), ISR9, CHANGE);
+attachPCINT(digitalPinToPCINT(I10), ISR10, CHANGE);
+attachPCINT(digitalPinToPCINT(I11), ISR11, CHANGE);
+attachPCINT(digitalPinToPCINT(I12), ISR12, CHANGE);
+attachPCINT(digitalPinToPCINT(I13), ISR13, CHANGE);
 
- 
- Serial.println("READY");
-sei();//allow interrupts
-digitalWrite(P2, LOW);digitalWrite(P3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
+Serial.begin(kSerialBaudRate);
+
+//The following statments create serial commands to communicate with the ardunioover USB:
+//gSerialCommands.addCommand("<string to call cmd>", <function to execute>);
+gSerialCommands.addCommand("CONF?", ConfigurePins);   //Configure the Pin definitions
+gSerialCommands.addCommand("SOUT", SetOutput);        //Sets the specified output to the specified state.
+gSerialCommands.addCommand("TOUT", ToggleOutput);     //Toggles the specified output from the current output state.
+gSerialCommands.addCommand("POUT", PulseOutput);      //sets the output high for a specified amount of time.
+gSerialCommands.addCommand("STAT", GetPinStates);     //gets the current state of each output PIN and displays it to the user.
+gSerialCommands.addCommand("CSTAT", GetCommaPinStates);     //gets the current state of each output PIN and SENDS BACK AS COMMA SEPERATED LIST. FIRST PARAMETER IS PIN 0 STAT. FROM THERE IT INCRIMENTS BY 1.
+gSerialCommands.addCommand("PWM", SetPWM);            //sets the specified PWM Pin to output at the specified frequency, duty cycle, and starting phase. (ex. PWM,<pin>,<duty-cycle>,<frequency>,<starting-phase>)
+gSerialCommands.addCommand("DBUG", DebugPrint);       //Prints debug info that might be usefull
+gSerialCommands.addCommand("SRT?", CmdQueryScanRate); //Gets the scan rate of the last loop interation.
+gSerialCommands.setDefaultHandler(CmdUnknown);        //Default Handler used to send back a notification telling the sender that the command is Unknown (ex. UNK,<your-command>)
+
+//Set inital values
+gScanRateMin = 999999;
+gScanRateMax = 0;
+strcpy(gAck, "ACK");
+strcpy(gNack, "NACK");
+digitalWrite(O2, LOW);digitalWrite(O3, LOW);digitalWrite(O4, LOW);digitalWrite(O5, LOW);digitalWrite(O5, LOW);digitalWrite(O6, LOW);digitalWrite(O7, LOW); //INITALIZE OUTPUTS
+///////////////////TESTING///////////////////////////////
+#ifdef MANDEF
+Serial.print("Board is manually defined as: ");
+#else
+Serial.print("Board = ")
+#endif
+
+#ifdef AVR_UNO
+Serial.println("AVR_UNO");
+#elif defined AVR_MEGA2560
+Serial.println("AVR_MEGA2560");
+#endif
+///////////////////TESTING///////////////////////////////
+Serial.println("READY");
+//sei();//allow interrupts
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop()
+{
+  // to run repeatedly:
 ScanStartMicros = micros();
 
-//Future Use
- /* has a new command been set?
-    if ( (gTriggerManual.Triggered() == true) || (gTriggerPLC.Triggered() == true) || (gTriggerUSB.Triggered() == true) )
-    {
-      pulseLenIn0_1Ms = gActivePulseTime->GetPulseTimeIn0_1ms();
-      gRunMode.GetRunModeText3(strRunMode);
-      gDiagLedMode = false;
-      Serial.print(" MOD,");
-      Serial.println(strRunMode);
-      Serial.print("TPT,");
-      Serial.println( pulseLenIn0_1Ms / 10.0);
-
-      gPulseStateMachine.Triggered(pulseLenIn0_1Ms);
-    }
-  }
-*/
-if (P2_State == 0)
+ cli();//stop interrupts
 
  // check for serial activity
   gSerialCommands.readSerial();
   gScanRate = ElapsedTime(ScanStartMicros, micros());
   if (gScanRate < gScanRateMin) gScanRateMin = gScanRate;
   if (gScanRate > gScanRateMax) gScanRateMax = gScanRate;
+
+  sei();//allow interrupts
 }
 
 /*char GetSerialCommandTxt(char cmd, char arg1, char arg2)
+{;;} */
+
+bool GetCurState(char *iPinNum) //gets the current state of the specified PIN.
 {
+  /* What Made This Possible...
+   * Serial.println(bitRead(PORTD,3)); //Reads bit 3 of register PORTD which contains the current state (high/low) of pin 3.
+   */
+  int pin;
+  bool PinState;
 
+  pin = atoi(iPinNum);
+
+  //Serial.println();
+  //Serial.print(I9);
+  //Serial.print("   ");
+  //Serial.println(I8);
+    if ( pin == I9 || pin == I8) //If the pin called was an input then use digitalRead
+    {
+      PinState = digitalRead(pin);
+    }
+    else                      //Then the pin is an output, so use the following to obtain the current state.
+    {
+      PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
+    }
+
+  return PinState;
 }
-*/
 
-void ISR2() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
+bool GetNextState(char *iPinNum) //gets the NEXT state of the specified pin number.
+                                //Will return TRUE or FALSE or HIGH or LOW  :   Completed by Ryan Baas Date: 20170206
 {
-  P2_State = !P2_State;
-  Serial.print("STCHG,2,"); //Send STCHG. AKA STATE CHANGE
-  Serial.println(P2_State);
-  
+  bool PinState, NextPinState;
+
+  PinState = GetCurState(iPinNum);
+  NextPinState = !PinState;
+  return NextPinState;
 }
 
-void ISR3() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
+/* Calculates the time elapsed between the start time and the current time
+ Assumes the start should always be before the current and then compensates
+ if the milli or micro clock has rolled over    */
+unsigned long ElapsedTime(unsigned long iStartTime, unsigned long iCurTime)
 {
-  P3_State = !P3_State;
-  Serial.print("STCHG,3,"); //Send STCHG. AKA STATE CHANGE
-  Serial.println(P3_State);
+  unsigned long elapsedTime;
+
+  if (iCurTime >= iStartTime)
+  {
+    elapsedTime = iCurTime - iStartTime;
+  }
+  else // clock rolled over
+  {
+    elapsedTime =  (unsigned long)0xFFFFFFFF - iStartTime + iCurTime;
+  }
+  return elapsedTime;
 }
 
-void SetupSerialCommands(void)
+char *i2str(int i, char *buf) //FUNNCTION TAKEN FROM ONLINE: INT TO STRING
+{
+  byte l=0;
+  if(i<0) buf[l++]='-';
+  boolean leadingZ=true;
+  for(int div=10000, mod=0; div>0; div/=10){
+    mod=i%div;
+    i/=div;
+    if(!leadingZ || i!=0){
+       leadingZ=false;
+       buf[l++]=i+'0';
+    }
+    i=mod;
+  }
+  buf[l]=0;
+  return buf;
+}
+
+void myDelay(int ix)   {
+  for(int i=0; i<=ix; i++)
+  {
+    delayMicroseconds(1000);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//SERIAL COMMAND HANDLERS below
+////////////////////////////////////////////////////////////////////////////////////////////
+/*
+void SetupSerialCommands(void) //SerialCommand() SetupSerialCommand()
 {
   Serial.begin(kSerialBaudRate);
 //The following statments create serial commands to communicate with the ardunioover USB:
@@ -181,10 +318,10 @@ void SetupSerialCommands(void)
   gSerialCommands.addCommand("SRT?", CmdQueryScanRate); //Gets the scan rate of the last loop interation.
   gSerialCommands.setDefaultHandler(CmdUnknown);        //Default Handler used to send back a notification telling the sender that the command is Unknown (ex. UNK,<your-command>)
 }
-
+*/
 void ConfigurePins(void)
 {
-  //Future use.
+;;  //Future use.
 }
 void SetOutput(void) //Called using 'SOUT'
 // FINISHED: Completed by Ryan Baas Date: 20170206
@@ -200,7 +337,7 @@ void SetOutput(void) //Called using 'SOUT'
   char *OutNum;                 //creates a pointer to hold the first argument
   char *State;                  //creates a pointer to hold the second argument
   char *result;                 //creates a pointer for the ACK or NACK reponses
-  result = gNack;               //initalize Default Result  
+  result = gNack;               //initalize Default Result
 
   //Load command arguments into variables:
   OutNum = gSerialCommands.next();
@@ -269,21 +406,21 @@ void ToggleOutput(void) //Called using 'TOUT'
     //Check to see if arguments were in fact acceptable:
     if (NextState != CurState && OutNum != I9 && OutNum != I8 )
     {
-       
+
       digitalWrite(atoi(OutNum), GetNextState(OutNum));
-       
+
        /*
-       //TOGGLE Desired Output:
+       TOGGLE Desired Output:
        switch (atoi(OutNum))
       {
         case 1:
         digitalWrite(S1, GetNextState(OutNum));
           break;
         case 2:
-        digitalWrite(P2, GetNextState(OutNum));
+        digitalWrite(O2, GetNextState(OutNum));
           break;
         case 3:
-        digitalWrite(P3, GetNextState(OutNum));
+        digitalWrite(O3, GetNextState(OutNum));
           break;
         case 4:
         digitalWrite(O4, GetNextState(OutNum));
@@ -339,15 +476,15 @@ void PulseOutput(void) //Called using 'POUT'
           Serial.println(result);
           break;
         case 2:
-          digitalWrite(P2, HIGH);
+          digitalWrite(O2, HIGH);
           delay(long(PulseTime));
-          digitalWrite(P2, LOW);
+          digitalWrite(O2, LOW);
           result = gAck;
           break;
         case 3:
-          digitalWrite(P3, HIGH);
+          digitalWrite(O3, HIGH);
           delay(long(PulseTime));
-          digitalWrite(P3, LOW);
+          digitalWrite(O3, LOW);
           break;
           result = gAck;
         case 4:
@@ -363,7 +500,7 @@ void PulseOutput(void) //Called using 'POUT'
           result = gAck;
           break;
       }
-      
+
     }
     //Print result:
     Serial.print(result);
@@ -378,9 +515,9 @@ void GetPinStates(void) //gets the current state of each output PIN and displays
 {                       //CALLED BY 'STAT'   :     Completed by Ryan Baas Date: 20170206
 
   char *PinNum, *result;
-  int j;
+  //int j; // corisponds to inputs state return
   //char* PinStatestxt[4];
-  bool PinState;
+  //bool PinState; // corisponds to inputs state return
 
   ////Load command arguments into variables & initalize result:
   PinNum = gSerialCommands.next();
@@ -407,7 +544,7 @@ void GetPinStates(void) //gets the current state of each output PIN and displays
     //Get each output PIN
     for (int i=1; i <= 13; i++) //PRINT ALL 5 OUTPUTS AND THEIR CURRENT STATE
     {
-    
+
       //j = i+1;
       Serial.print("   ");                  //BlankSpace
       Serial.print(gCharPins[i]);
@@ -422,26 +559,26 @@ void GetPinStates(void) //gets the current state of each output PIN and displays
       }
       Serial.print(GetCurState(i2str(i,gbuf)));   //Print current state
                  Serial.println("   ");                  //Spcaces (Future)
-                 
+
     }
     /*
-    for (int i=7; i <= 8; i++) //THIS WILL BE USEFULL BUT FOR NOW I JUST NEED TO GET ON WITH THIS PROJECT 
+    for (int i=7; i <= 8; i++) //THIS WILL BE USEFULL BUT FOR NOW I JUST NEED TO GET ON WITH THIS PROJECT
     {
       j = i-7;
       Serial.print("   ");                  //BlankSpace
       Serial.print(gInAliases[j]);         //Print output/INPUT number
-           Serial.print("  |   ");              //Spaces (Future)       
+           Serial.print("  |   ");              //Spaces (Future)
       Serial.print(GetCurState(i2str(i,gbuf)));   //Print current state
                  Serial.println("   ");                  //Spcaces (Future)
     }
     */
      //Get each input state
-//    for (int i; i <= 1; i++) 
+//    for (int i; i <= 1; i++)
 //    {
 //      j = i+7;
 //      Serial.print("   ");                  //BlankSpace
 //      Serial.print(gInAliases[i]);         //Print output/INPUT number
-//           Serial.print("  |   ");              //Spaces (Future)       
+//           Serial.print("  |   ");              //Spaces (Future)
 //      Serial.print(GetCurState(i2str(j,gbuf)));   //Print current state
 //                 Serial.println("   ");                  //Spcaces (Future)
 //    }
@@ -457,7 +594,7 @@ void GetCommaPinStates(void)
   Serial.print(GetCurState(i2str(i,gbuf)));   //Print current state
   if(i == 13)
   {
-    
+
   }
   else{
   Serial.print(",");
@@ -468,12 +605,12 @@ void GetCommaPinStates(void)
 
 void SetPWM(void)
 {
- // NEEDS WORK!! 
+ // NEEDS WORK!!
 /* COMMAND INFO & EXAMPLES:
  FORMAT: PWM,<PIN>,<DESIRED-ANGLE>    //<FREQUENCY><DUTY-CYCLE>    //Command is space sensitive.
      EX. PWM,11,22,50      //Sets pin 11 to output PWM with 22_Hz and 50% Duty Cycle
      */
-//INITIALIZE PARAMETER POINTERS      
+//INITIALIZE PARAMETER POINTERS
 char *result, *iPin, *iSteps;   //, *iFreq, *iDutyCycle, *result;
 
 
@@ -481,7 +618,7 @@ char *result, *iPin, *iSteps;   //, *iFreq, *iDutyCycle, *result;
 iPin = gSerialCommands.next();
 iSteps = gSerialCommands.next();
 //iFreq = gSerialCommands.next();
-//iDutyCycle = gSerialCommands.next(); 
+//iDutyCycle = gSerialCommands.next();
 result = gNack;
 
 if(iPin != NULL && iSteps != NULL) //if we have a argument(Pin Number), send back an Ack and use default values:
@@ -509,78 +646,16 @@ int pos = 0;    // variable to store the servo position
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
   } TOUT,4
- */ 
+ */
 /*  for (pos = 180; pos >= 0; pos -= 1)  // goes from 180 degrees to 0 degrees
  *   {
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
-      } */ 
-    
+      } */
+
   }
-  
+
 }//end function 'SetPWM'
-
-
-bool GetCurState(char *iPinNum) //gets the current state of the specified output PIN.
-{
-  /* What Made This Possible...
-   * Serial.println(bitRead(PORTD,3)); //Reads bit 3 of register PORTD which contains the current state (high/low) of pin 3.
-   */
-  int pin;
-  bool PinState;
-
-  pin = atoi(iPinNum);
-
-  //Serial.println();
-  //Serial.print(I9);
-  //Serial.print("   ");
-  //Serial.println(I8);
-    if ( pin == I9 || pin == I8) //If the pin called was an input then use digitalRead
-    {
-      PinState = digitalRead(pin);
-    }
-    else                      //Then the pin is an output, so use the following to obtain the current state.
-    {
-      PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-    }
-  /*switch (atoi(iPinNum))
-      {
-        case 1:
-        pin= S1;
-        PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-        case 2:
-        pin= P2;
-        PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-        case 3:
-        pin= P3;
-       PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-        case 4:
-        pin= O4;
-        PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-        case 5:
-        pin= O5;
-        PinState = (0!=(*portOutputRegister( digitalPinToPort(pin) ) & digitalPinToBitMask(pin)));
-          break;
-      }
-      */
-  return PinState;
-}
-
-
-
-bool GetNextState(char *iPinNum) //gets the NEXT state of the specified pin number.
-                                //Will return TRUE or FALSE or HIGH or LOW  :   Completed by Ryan Baas Date: 20170206
-{
-  bool PinState, NextPinState;
-
-  PinState = GetCurState(iPinNum);
-  NextPinState = !PinState;
-  return NextPinState;
-}
 
 
 
@@ -590,34 +665,15 @@ void CmdUnknown(const char *iCommand) //Called on anything sent that is not defi
   Serial.println(iCommand);
 }
 
-/* Calculates the time elapsed between the start time and the current time
- Assumes the start should always be before the current and then compensates
- if the milli or micro clock has rolled over    */
-unsigned long ElapsedTime(unsigned long iStartTime, unsigned long iCurTime)
-{
-  unsigned long elapsedTime;
-
-  if (iCurTime >= iStartTime)
-  {
-    elapsedTime = iCurTime - iStartTime;
-  }
-  else // clock rolled over
-  {
-    elapsedTime =  (unsigned long)0xFFFFFFFF - iStartTime + iCurTime;
-  }
-  return elapsedTime;
-}
-
 void DebugPrint(void) //FUNCTION FOR SERIAL DEBUGING
 {
   //Your Debugging Statments Here:
   //Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
-for (int i = 7;i<=8;i++)
-{
+  for (int i = 7;i<=8;i++)
+  {
   Serial.println();
   Serial.println(GetCurState(i2str(i,gbuf)));
-}
-
+  }
 // Old Debugging
 /*  int pin = S1;
   bool PinState = (0!=(*portOutputRegister( digitalPinToPort(S1) ) & digitalPinToBitMask(S1)));
@@ -629,7 +685,7 @@ for (int i = 7;i<=8;i++)
   */
 }
 
-void CmdQueryScanRate(void) //Called using 'SRT?'
+void CmdQueryScanRate() //Called using 'SRT?'
 /* COMMAND INFO & EXAMPLES:
  FORMAT: SRT?               //Command has no parameters.
      EX. SRT?               //Returns the scan rate of the previous microprocessor loop.  */
@@ -640,20 +696,102 @@ void CmdQueryScanRate(void) //Called using 'SRT?'
   Serial.print(",");
   Serial.println(gScanRateMax);
 }
-char *i2str(int i, char *buf) //FUNNCTION TAKEN FROM ONLINE: INT TO STRING
+//////////////////////////////////////////////////////////////////////////////////////////////
+// START ISRs
+/////////////////////////////////////////////////////////////////////////////////////////////
+void ISR2() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
 {
-  byte l=0;
-  if(i<0) buf[l++]='-';
-  boolean leadingZ=true;
-  for(int div=10000, mod=0; div>0; div/=10){
-    mod=i%div;
-    i/=div;
-    if(!leadingZ || i!=0){
-       leadingZ=false;
-       buf[l++]=i+'0';
+  //O2_State = !O2_State;
+  //Serial.print("STCHG,2,"); //Send STCHG. AKA STATE CHANGE
+  //Serial.println(O2_State);
+}
+
+void ISR3() //Sends [  STCHG,<PIN-NUMBER>,<NEW STATE>  ]
+{
+  //O3_State = !O3_State;
+  //Serial.print("STCHG,3,"); //Send STCHG. AKA STATE CHANGE
+  //Serial.println(O3_State);
+}
+
+void ISR4()
+{
+// Placeholder
+
+}
+void ISR8()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I8));
+    if(trigger == RISING){
+    ;;  // Do something
     }
-    i=mod;
-  }
-  buf[l]=0;
-  return buf;
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
+
+}
+void ISR9()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I9));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+      // Wrong usage (trigger == CHANGE)
+;;
+}
+void ISR10()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I10));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
+
+}
+void ISR11()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I11));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
+
+}
+void ISR12()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I12));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
+
+}
+void ISR13()
+{
+    uint8_t trigger = getPinChangeInterruptTrigger(digitalPinToPCINT(I13));
+    if(trigger == RISING){
+    ;;  // Do something
+    }
+    else if(trigger == FALLING){
+    ;;  // Do something
+    }
+    else
+    ;;  // Wrong usage (trigger == CHANGE)
 }

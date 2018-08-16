@@ -1,0 +1,13 @@
+{
+  "name": "ISRs",
+  "keywords": "Interrupts",
+  "description": "Interupts on any pin.",
+  "authors":
+{
+    "name": "Ryan Baas",
+    "email": "Ryan.Baas@signalysis.com",
+    "url": "Signalysis.com"
+},
+  "frameworks": "arduino",
+  "platforms": "atmelavr"
+}
