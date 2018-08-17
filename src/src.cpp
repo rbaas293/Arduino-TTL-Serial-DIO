@@ -16,12 +16,8 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 //#include "Commands.h"
 //#include "ISRs.h"
 #include <DirectIO.h>
-//#include <PinChangeInt.h>
-//#include <PinChangeIntConfig.h>
 #include <PinChangeInterrupt.h>
-//#include <PinChangeInterruptBoards.h>
-//#include <PinChangeInterruptPins.h>
-//#include <PinChangeInterruptSettings.h>
+
 #define str(x) #x //just playin around.
 #define kSerialBaudRate 9600
 
@@ -221,18 +217,11 @@ ScanStartMicros = micros();
 
 bool GetCurState(char *iPinNum) //gets the current state of the specified PIN.
 {
-  /* What Made This Possible...
-   * Serial.println(bitRead(PORTD,3)); //Reads bit 3 of register PORTD which contains the current state (high/low) of pin 3.
-   */
   int pin;
   bool PinState;
 
   pin = atoi(iPinNum);
 
-  //Serial.println();
-  //Serial.print(I9);
-  //Serial.print("   ");
-  //Serial.println(I8);
     if ( pin == I9 || pin == I8) //If the pin called was an input then use digitalRead
     {
       PinState = digitalRead(pin);
@@ -255,10 +244,11 @@ bool GetNextState(char *iPinNum) //gets the NEXT state of the specified pin numb
   return NextPinState;
 }
 
+
+unsigned long ElapsedTime(unsigned long iStartTime, unsigned long iCurTime)
 /* Calculates the time elapsed between the start time and the current time
  Assumes the start should always be before the current and then compensates
  if the milli or micro clock has rolled over    */
-unsigned long ElapsedTime(unsigned long iStartTime, unsigned long iCurTime)
 {
   unsigned long elapsedTime;
 
@@ -377,59 +367,21 @@ void ToggleOutput(void) //Called using 'TOUT'
   char *OutNum;                 //creates a pointer to hold the first argument
   char *result;                 //creates a pointer for the ACK or NACK reponses
   bool CurState, NextState;
-/*
- * Serial.println(bitRead(PORTD,3)); //Reads bit 3 of register PORTD which contains the current state (high/low) of pin 3.
- */
   result = gNack;
 
   //Load command arguments into variables: just a little change
   OutNum = gSerialCommands.next();
-
-
   CurState = GetCurState(OutNum);
-/*  DEBUG CURRENT STATE
-  Serial.println();
-  Serial.print("CurState = ");
-  Serial.println(CurState);     */
-  //Print command back to user
   Serial.println(OutNum);
-
 
   //--------------------------
     //Find out what our next state is going to be.
     NextState = GetNextState(OutNum);
-/*  DEBUG NEXT STATE
-    Serial.print("NextState = ");
-    Serial.println(NextState);
-    */
 
     //Check to see if arguments were in fact acceptable:
     if (NextState != CurState && OutNum != I9 && OutNum != I8 )
     {
-
       digitalWrite(atoi(OutNum), GetNextState(OutNum));
-
-       /*
-       TOGGLE Desired Output:
-       switch (atoi(OutNum))
-      {
-        case 1:
-        digitalWrite(S1, GetNextState(OutNum));
-          break;
-        case 2:
-        digitalWrite(O2, GetNextState(OutNum));
-          break;
-        case 3:
-        digitalWrite(O3, GetNextState(OutNum));
-          break;
-        case 4:
-        digitalWrite(O4, GetNextState(OutNum));
-          break;
-        case 5:
-        digitalWrite(O5, GetNextState(OutNum));
-          break;
-      }
-      */
       result = gAck;
     }
     //Print result:
@@ -469,41 +421,14 @@ void PulseOutput(void) //Called using 'POUT'
     Serial.println(PulseTime);
 
     if (OutNum != NULL && PulseTime != NULL && PulseTime < 10000)
-    {
-      switch (atoi(OutNum))
-      {
-        case 1:
-          Serial.println(result);
-          break;
-        case 2:
-          digitalWrite(O2, HIGH);
-          delay(long(PulseTime));
-          digitalWrite(O2, LOW);
-          result = gAck;
-          break;
-        case 3:
-          digitalWrite(O3, HIGH);
-          delay(long(PulseTime));
-          digitalWrite(O3, LOW);
-          break;
-          result = gAck;
-        case 4:
-          digitalWrite(O4, HIGH);
-          delay(long(PulseTime));
-          digitalWrite(O4, LOW);
-          result = gAck;
-          break;
-        case 5:
-          digitalWrite(O5, HIGH);
-          delay(long(PulseTime));
-          digitalWrite(O5, LOW);
-          result = gAck;
-          break;
-      }
-
+    { // need a .contains() type of function here so we can only call this command on output pins.
+    digitalWrite(atoi(OutNum), HIGH);
+    delay(long(PulseTime));
+    digitalWrite(atoi(OutNum), LOW);
+    result = gAck;
     }
     //Print result:
-    Serial.print(result);
+    Serial.println(result);
    /* if (result == gAck)       //if ack then, print ack and display Current State of pin:
     {
       Serial.print(",");
@@ -589,6 +514,9 @@ void GetPinStates(void) //gets the current state of each output PIN and displays
 
 void GetCommaPinStates(void)
 {
+    //Print command back to user
+    Serial.print("CSTAT");
+    Serial.print(",");
  for (int i = 0; i<=13; i++)
  {
   Serial.print(GetCurState(i2str(i,gbuf)));   //Print current state
@@ -632,7 +560,7 @@ if(iPin != NULL && iSteps != NULL) //if we have a argument(Pin Number), send bac
     Serial.println(result);
 
 //Move MTR To Positon
-
+// This should be re done into a class
 for (int i = 0; i <= atoi(iSteps); i += 1)  // goes from 0 degrees to 180 degrees
   {
   digitalWrite(atoi(iPin), HIGH);
@@ -668,21 +596,12 @@ void CmdUnknown(const char *iCommand) //Called on anything sent that is not defi
 void DebugPrint(void) //FUNCTION FOR SERIAL DEBUGING
 {
   //Your Debugging Statments Here:
-  //Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
-  for (int i = 7;i<=8;i++)
+  Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
+  /*for (int i = 7;i<=8;i++)
   {
   Serial.println();
   Serial.println(GetCurState(i2str(i,gbuf)));
-  }
-// Old Debugging
-/*  int pin = S1;
-  bool PinState = (0!=(*portOutputRegister( digitalPinToPort(S1) ) & digitalPinToBitMask(S1)));
-  Serial.println("");
-  Serial.print("OUT");
-  Serial.print("1");
-  Serial.print(" Current State: ");
-  Serial.println(PinState);
-  */
+} */
 }
 
 void CmdQueryScanRate() //Called using 'SRT?'

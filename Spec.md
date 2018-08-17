@@ -31,7 +31,7 @@
 ### NON INCLUDED LIBRARIES BUT COULD BE
 1. `#include <SoftwareSerial.h>`
 	- This library is included in TPG2V3.0 base code in order to talk serial to a `one wire` Serial chip on the current PCB. this chip talks to the Hammer to obtain its serial number (if the serial # chip is installed in the hammer).  
-	- Currently there is a conflicting bug in certain circumstances when `PinChangeInterrupt` and `SoftwareSerial` are used together. To fix this I believe that pins 0, 1, 2, 3 Should be disabled in PCINT's `PinChangeInterruptPins.h` file.
+	- Currently there is a conflicting bug in certain circumstances when `PinChangeInterrupt` and `SoftwareSerial` are used together. To fix this I believe that pins 0, 1, 2, 3 Should be disabled in PCINT's `PinChangeInterruptPins.h` file. 
 
 ### CUSTOM LIBRARIES
 1. `#include "RunMode.h"`
