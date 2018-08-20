@@ -1,0 +1,3 @@
+[submodule "lib/DirectIO"]
+	path = lib/DirectIO
+	url = https://github.com/mmarchetti/DirectIO.git
