@@ -1,0 +1,6 @@
+[submodule "lib/Arduino-EEPROMEx"]
+	path = lib/EEPROMEx/
+	url = https://github.com/thijse/Arduino-EEPROMEx.git
+[submodule "lib/SdFat"]
+	path = lib/SdFat
+	url = https://github.com/greiman/SdFat.git

@@ -7,8 +7,9 @@ SigPWM(const uint8_t iPin, const uint8_t iFreq, const uint8_t iDuty, const doubl
   mDisablePin = iDisablePin
   mDirecPin = iDirecPin
   mFreq = iFreq;
+  mPeriod = 1/iFreq;
   mDuty = iDuty;
-  mDutymicros = iDuty*(1/mFeq);
+  mDutymicros = iDuty*mPeriod;
   mStepsPerRev = iStepsPerRev;
 
 }
@@ -17,24 +18,49 @@ SigPWM(const uint8_t iPin, const uint8_t iFreq, const uint8_t iDuty, const doubl
 
 }
 
-int Conv2Steps(double iDegrees){
+int Degree2Steps(double iDegrees){
 //Converts input Degrees into Steps.
 //This Depends on the Steps Per Rev of the motor. this example will use a 2000 Steps/Rev.
-// StepsPerRev = {# of Steps to go 360 Degrees} / {Degrees Per Rev (I would hope this is 360)}
+// StepsPerDeg = {# of Steps to go 360 Degrees} / {Degrees Per Rev (I would hope this is 360)}
 mStepsPerDeg = mStepsPerRev/360;
-return iDegrees*mStepsPerRev;
+return iDegrees*mStepsPerDeg;
 
 }
 
-void SetFreq(uint8_t iFreq, uint8_t iPeriod_ms){
+void Move(double iDegrees)
+{
+  int iSteps = Degree2Steps(iDegrees)
+  for (int i = 0; i <= atoi(iSteps); i += 1)  // goes from 0 degrees to 180 degrees
+    {
+    digitalWrite(atoi(mPin), HIGH);
+    delayMicroseconds(mDutyMicros); // if = 1 ... then, Approximately 1% duty cycle @ 10KHz
+    digitalWrite(atoi(mPin), LOW);
+    delayMicroseconds(100 - mDutyMicros); // if = 100-1
+    }
+
+    Serial.println("DONE");
+
+}
+
+void SetFreq(uint8_t iFreq, uint8_t iPeriod_us){
 
   if (iFreq == NULL){
     mFreq = 1/iPeriod_ms;
     #ifdef DEBUG
-      Serial.print("mFreq = %i set from Period.", mFreq)
+      Serial.println("mFreq = %i set from Period.", mFreq)
     #endif
   }
+  else{
+    mFreq = iFreq;
+    SetDuty(mDuty); //Needed to update mD
+  }
 }
+
+uint8_t GetFreq(void){
+  return mFreq;
+}
+
+
 
 void SetDuty(uint8_t iPercent0_100){
 
