@@ -7,6 +7,7 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 08-16-18: ITS BEEN 4 MONTHS SINCE THIS PROJECT WAS STARTED AS A POC. WOW TIME FLIES
 */
 //Included Libraries:
+#define DEBUG
 #include <Arduino.h>
 #include <string.h>
 #include <SerialCommand.h>
@@ -15,6 +16,7 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #include <Servo.h>
 //#include "Commands.h"
 //#include "ISRs.h"
+#include <SigPWM.h>
 #include <DirectIO.h>
 #include <PinChangeInterrupt.h>
 
@@ -70,7 +72,7 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 //Initilize Objects:
 SerialCommand gSerialCommands;
 
-SigPWM motor(O7, 2000, O4, O5, 10000, 10);
+SigPWM motor(O7, 2000.00, O4, O5, 10000, 10);
 //void SetupSerialCommands(void);
 //Set Up Functions/Methods:
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
@@ -547,8 +549,8 @@ char *result, *iMtrNumb, *iDegree;   //, *iFreq, *iDutyCycle, *result;
 
 
 //SAVE INPUT PARAMETERS TO VARIABLES
-iPin = gSerialCommands.next();
-iSteps = gSerialCommands.next();
+iMtrNumb = gSerialCommands.next();
+iDegree = gSerialCommands.next();
 //iFreq = gSerialCommands.next();
 //iDutyCycle = gSerialCommands.next();
 result = gNack;
@@ -556,9 +558,9 @@ result = gNack;
 if(iMtrNumb != NULL && iDegree != NULL) //if we have a argument(Pin Number),
   {
     //Print Out Command:
-    Serial.print(iPin);
+    Serial.print(iMtrNumb);
     Serial.print(",");
-    Serial.println(iSteps);
+    Serial.println(iDegree);
     //UPDATE and Print Out Response:
     result = gAck;
     Serial.println(result);
@@ -580,7 +582,14 @@ void CmdUnknown(const char *iCommand) //Called on anything sent that is not defi
 void DebugPrint(void) //FUNCTION FOR SERIAL DEBUGING
 {
   //Your Debugging Statments Here:
-  Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
+  //Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
+  Serial.println("Freq = " + String(motor.GetFreq()));
+
+      Serial.println("Period = " + String(motor.GetPeriod()));
+        Serial.println("Duty = " + String(motor.GetDuty()));
+          Serial.println("Dutymicros = " + String(motor.GetDutymicros()));
+            Serial.println("StepsPerRev = " + String(motor.GetStepsPerRev()));
+              Serial.println("CurStepCount = " + String(motor.GetCurStepCount()));
   /*for (int i = 7;i<=8;i++)
   {
   Serial.println();

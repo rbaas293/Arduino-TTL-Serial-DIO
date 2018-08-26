@@ -8,9 +8,9 @@ SigPWM::SigPWM(const uint8_t iOutPin, double iStepsPerRev, const uint8_t iDisabl
   mDirecPin = iDirecPin;
   mDirection = 0;
   mFreq = iFreq;
-  mPeriod = 1/iFreq;
+  mPeriod_us = (10^6)*(1/iFreq);
   mDuty = iDuty;
-  mDutymicros = iDuty*mPeriod;
+  mDutymicros = (100^-2)*iDuty*mPeriod_us;
   mStepsPerRev = iStepsPerRev;
   mCurPositionDeg = 0;
 }
@@ -55,12 +55,16 @@ return iDegrees*mStepsPerDeg;
 void SigPWM::Move(double iDegrees) // goes to the specified degrees between 0 and 360
 {
   int iSteps = Degree2Steps(iDegrees);
+  #ifdef DEBUG
+    Serial.print("DBUG: iDegrees = ");
+    Serial.println(iDegrees);
+    #endif
   for (int i = 0; i <= iSteps; i += 1)  // goes from 0 degrees to 180 degrees
     {
     digitalWrite(mOutPin, HIGH);
     delayMicroseconds(mDutymicros); // if = 1 ... then, Approximately 1% duty cycle @ 10KHz
     digitalWrite(mOutPin, LOW);
-    delayMicroseconds(mPeriod - mDutymicros); // if = 100-1
+    delayMicroseconds(mPeriod_us - mDutymicros); // if = 100-1
     mStepCount++;
     mCurPositionDeg += (1/mStepsPerDeg);
     }
@@ -74,6 +78,7 @@ void SigPWM::Move(double iDegrees) // goes to the specified degrees between 0 an
 
 void SigPWM::SetDirection(bool iDirection){
     mDirection = iDirection;
+    digitalWrite(mDirecPin, mDirection);
 }
 
 bool SigPWM::GetCurDirection(void){
@@ -90,7 +95,7 @@ void SigPWM::SetFreq(uint8_t iFreq, uint8_t iPeriod_us){
   }
   else{
     mFreq = iFreq;
-    mPeriod = 1/iFreq;
+    mPeriod_us = 1/iFreq;
     SetDuty(mDuty); //Needed to update mDutymicros
   }
 }
@@ -98,11 +103,14 @@ void SigPWM::SetFreq(uint8_t iFreq, uint8_t iPeriod_us){
 uint8_t SigPWM::GetFreq(void){
   return mFreq;
 }
+uint8_t SigPWM::GetPeriod(void){
+  return mPeriod_us;
+}
 
 void SigPWM::SetDuty(uint8_t iPercent0_100){
 
   mDuty = iPercent0_100;
-  mDutymicros = mDuty*mPeriod;
+  mDutymicros = mDuty*mPeriod_us;
 }
 
 uint8_t SigPWM::GetDuty(void){
@@ -136,7 +144,7 @@ double SigPWM::GetCurDegs(void){
 void SigPWM::SetHome(void){
 // Resets the Position of to 0 and makes the current location the home. cannot be called while moving.
 mCurPositionDeg = 0;
-
+mStepCount = 0;
 }
 
 void SigPWM::SetSaveState(bool i){
