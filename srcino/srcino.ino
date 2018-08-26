@@ -69,6 +69,8 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #endif
 //Initilize Objects:
 SerialCommand gSerialCommands;
+
+SigPWM motor(O7, 2000, O4, O5, 10000, 10);
 //void SetupSerialCommands(void);
 //Set Up Functions/Methods:
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
@@ -541,7 +543,7 @@ void SetPWM(void)
      EX. PWM,11,22,50      //Sets pin 11 to output PWM with 22_Hz and 50% Duty Cycle
      */
 //INITIALIZE PARAMETER POINTERS
-char *result, *iPin, *iSteps;   //, *iFreq, *iDutyCycle, *result;
+char *result, *iMtrNumb, *iDegree;   //, *iFreq, *iDutyCycle, *result;
 
 
 //SAVE INPUT PARAMETERS TO VARIABLES
@@ -551,7 +553,7 @@ iSteps = gSerialCommands.next();
 //iDutyCycle = gSerialCommands.next();
 result = gNack;
 
-if(iPin != NULL && iSteps != NULL) //if we have a argument(Pin Number), send back an Ack and use default values:
+if(iMtrNumb != NULL && iDegree != NULL) //if we have a argument(Pin Number),
   {
     //Print Out Command:
     Serial.print(iPin);
@@ -563,33 +565,11 @@ if(iPin != NULL && iSteps != NULL) //if we have a argument(Pin Number), send bac
 
 //Move MTR To Positon
 // This should be re done into a class
-for (int i = 0; i <= atoi(iSteps); i += 1)  // goes from 0 degrees to 180 degrees
-  {
-  digitalWrite(atoi(iPin), HIGH);
-  delayMicroseconds(1); // Approximately 10% duty cycle @ 10KHz
-  digitalWrite(atoi(iPin), LOW);
-  delayMicroseconds(100 - 1);
-  }
-  
-  Serial.println("DONE");
-int pos = 0;    // variable to store the servo position
-/* for (pos = 0; pos <= atoi(iSteps); pos += 1) { // goes from 0 degrees to 180 degrees
-    // in steps of 1 degree
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15ms for the servo to reach the position
-  } TOUT,4
- */
-/*  for (pos = 180; pos >= 0; pos -= 1)  // goes from 180 degrees to 0 degrees
- *   {
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15ms for the servo to reach the position
-      } */
-
-  }
-
-}//end function 'SetPWM'
-
-
+Serial.print("Current position = ");
+Serial.println(motor.GetCurDegs());
+motor.Move(atof(iDegree));
+    }
+}
 
 void CmdUnknown(const char *iCommand) //Called on anything sent that is not defined as a command (ex. 'TPGTRIG')
 {
