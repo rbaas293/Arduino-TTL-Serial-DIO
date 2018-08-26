@@ -69,6 +69,8 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #endif
 //Initilize Objects:
 SerialCommand gSerialCommands;
+
+SigPWM motor(O7, 2000, O4, O5, 10000, 10); 
 //void SetupSerialCommands(void);
 //Set Up Functions/Methods:
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
@@ -570,7 +572,7 @@ for (int i = 0; i <= atoi(iSteps); i += 1)  // goes from 0 degrees to 180 degree
   digitalWrite(atoi(iPin), LOW);
   delayMicroseconds(100 - 1);
   }
-  
+
   Serial.println("DONE");
 int pos = 0;    // variable to store the servo position
 /* for (pos = 0; pos <= atoi(iSteps); pos += 1) { // goes from 0 degrees to 180 degrees
