@@ -8,7 +8,7 @@ SigPWM::SigPWM(const uint8_t iOutPin, double iStepsPerRev, const uint8_t iDisabl
   mDirecPin = iDirecPin;
   mDirection = 0;
   mFreq = iFreq;
-  mPeriod_us = (10^-6)*(1/iFreq);
+  mPeriod_us = (10^6)*(1/iFreq);
   mDuty = iDuty;
   mDutymicros = (10^-2)*iDuty*mPeriod_us;
   mStepsPerRev = iStepsPerRev;
@@ -103,7 +103,11 @@ void SigPWM::SetFreq(uint8_t iFreq, uint8_t iPeriod_us){
 uint8_t SigPWM::GetFreq(void){
   return mFreq;
 }
+<<<<<<< HEAD
 unsigned int SigPWM::GetPeriod(void){
+=======
+uint8_t SigPWM::GetPeriod(void){
+>>>>>>> b4baf963926d5dd029753b88d28ed6dbc0a709ad
   return mPeriod_us;
 }
 

@@ -2,7 +2,11 @@
 #define SIGPWM_H
 
 #include <Arduino.h>
+<<<<<<< HEAD
 //#include <SdFat.h>
+=======
+#include <SdFat.h>
+>>>>>>> b4baf963926d5dd029753b88d28ed6dbc0a709ad
 #include <EEPROMex.h>
 class SigPWM
 {
@@ -33,7 +37,11 @@ void SetSaveState(bool i);
 
 //bool GreaterThan100();
 protected:
+<<<<<<< HEAD
 uint8_t mOutPin, mDisablePin, mDirecPin, mFreq, mDuty, mDutymicros, mStepsPerRev;
+=======
+uint8_t mOutPin, mDisablePin, mDirecPin, mFreq, mPeriod_us, mDuty, mDutymicros, mStepsPerRev;
+>>>>>>> b4baf963926d5dd029753b88d28ed6dbc0a709ad
 bool mDirection; //low = clockwise High = counter-clockkwise?? need to check.
 bool mSaveState;
 double mStepsPerDeg;
