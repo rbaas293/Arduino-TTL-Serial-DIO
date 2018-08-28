@@ -1,16 +1,16 @@
 #include <SigPWM.h>
 
 
-SigPWM::SigPWM(const uint8_t iOutPin, double iStepsPerRev, const uint8_t iDisablePin, uint8_t iDirecPin, uint8_t iFreq, uint8_t iDuty)
+SigPWM::SigPWM(const int iOutPin, double iStepsPerRev, const int iDisablePin, const int iDirecPin, int iFreq, int iDuty)
 {
   mOutPin = iOutPin;
   mDisablePin = iDisablePin;
   mDirecPin = iDirecPin;
   mDirection = 0;
   mFreq = iFreq;
-  mPeriod_us = (10^6)*(1/iFreq);
+  mPeriod_us = 1.0e6/iFreq;
   mDuty = iDuty;
-  mDutymicros = (10^-2)*iDuty*mPeriod_us;
+  mDutymicros = 0.01*iDuty*mPeriod_us;
   mStepsPerRev = iStepsPerRev;
   mCurPositionDeg = 0;
 }
@@ -76,6 +76,52 @@ void SigPWM::Move(double iDegrees) // goes to the specified degrees between 0 an
 
 }
 
+void SigPWM::MoveTo(double iDegrees) // goes to the specified degrees between 0 and 360
+{
+// compare current location to requested location.
+double DiffDeg;
+if (mCurPositionDeg > iDegrees){
+  double Diff2Zero = 360 - mCurPosition;
+  DiffDeg = Diff2Zero + iDegrees;
+}
+elseif (mCurPositionDeg < iDegrees){
+  DiffDeg = iDegrees - mCurPosition ;
+}
+elseif (mCurPositionDeg = iDegrees){
+  DiffDeg = 0;
+}
+
+
+  if (DiffDeg != 0){
+  int iSteps = Degree2Steps(DiffDeg);
+  #ifdef DEBUG
+    Serial.print("DBUG: iDegrees = ");
+    Serial.println(iDegrees);
+    #endif
+  for (int i = 0; i <= iSteps; i += 1)  // goes from 0 degrees to iDegrees
+    {
+    digitalWrite(mOutPin, HIGH);
+    delayMicroseconds(int(mDutymicros)); // if = 1 ... then, Approximately 1% duty cycle @ 10KHz
+    digitalWrite(mOutPin, LOW);
+    delayMicroseconds(int(mPeriod_us - mDutymicros)); // if = 100-1
+    mStepCount++; //should add if direction changes then we subtract.
+    mAbsPositionStep++;
+    mCurPositionDeg += (1/mStepsPerDeg);
+    mAbsPositionDeg += (1/mStepsPerDeg);
+
+    if (mCurPositionDegree >= 360){
+      // should prolly account for the chance mCurPositionDeg intterates to 360.2 deg and set the new value to 0.2 deg
+      mCurPositionDeg = 0;
+    }
+    }
+
+
+    Serial.print("New Position is ");
+    Serial.println(mCurPositionDeg);
+    Serial.println("DONE");
+  }
+  Serial.pintln("The motor is already at the specified location.");
+}
 void SigPWM::SetDirection(bool iDirection){
     mDirection = iDirection;
     digitalWrite(mDirecPin, mDirection);
@@ -85,7 +131,7 @@ bool SigPWM::GetCurDirection(void){
     return mDirection;
 }
 
-void SigPWM::SetFreq(uint8_t iFreq, uint8_t iPeriod_us){
+void SigPWM::SetFreq(int iFreq, int iPeriod_us){
 
   if (iFreq == -1){
     mFreq = 1/iPeriod_us;
@@ -100,32 +146,29 @@ void SigPWM::SetFreq(uint8_t iFreq, uint8_t iPeriod_us){
   }
 }
 
-uint8_t SigPWM::GetFreq(void){
+int SigPWM::GetFreq(void){
   return mFreq;
 }
-<<<<<<< HEAD
-unsigned int SigPWM::GetPeriod(void){
-=======
-uint8_t SigPWM::GetPeriod(void){
->>>>>>> b4baf963926d5dd029753b88d28ed6dbc0a709ad
+
+double SigPWM::GetPeriod(void){
   return mPeriod_us;
 }
 
-void SigPWM::SetDuty(uint8_t iPercent0_100){
+void SigPWM::SetDuty(int iPercent0_100){
 
   mDuty = iPercent0_100;
   mDutymicros = mDuty*mPeriod_us;
 }
 
-uint8_t SigPWM::GetDuty(void){
+double SigPWM::GetDuty(void){
   return mDuty;
 }
 
-uint8_t SigPWM::GetDutymicros(void){
+double SigPWM::GetDutymicros(void){
   return  mDutymicros;
 }
 
-void SigPWM::SetStepsPerRev(uint8_t iStepsPerRev){
+void SigPWM::SetStepsPerRev(int iStepsPerRev){
     mStepsPerRev = iStepsPerRev;
 }
 

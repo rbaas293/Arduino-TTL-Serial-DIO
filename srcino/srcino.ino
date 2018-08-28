@@ -71,8 +71,8 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #endif
 //Initilize Objects:
 SerialCommand gSerialCommands;
-
 SigPWM motor(O7, 2000.00, O4, O5, 10000, 10);
+
 //void SetupSerialCommands(void);
 //Set Up Functions/Methods:
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
@@ -567,7 +567,7 @@ if(iMtrNumb != NULL && iDegree != NULL) //if we have a argument(Pin Number),
 
 //Move MTR To Positon
 // This should be re done into a class
-Serial.print("Current position = ");
+Serial.print("Previous position = ");
 Serial.println(motor.GetCurDegs());
 motor.Move(atof(iDegree));
     }
@@ -583,6 +583,7 @@ void DebugPrint(void) //FUNCTION FOR SERIAL DEBUGING
 {
   //Your Debugging Statments Here:
   //Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
+ 
   Serial.println("Freq = " + String(motor.GetFreq()));
 
       Serial.println("Period = " + String(motor.GetPeriod()));
@@ -590,6 +591,7 @@ void DebugPrint(void) //FUNCTION FOR SERIAL DEBUGING
           Serial.println("Dutymicros = " + String(motor.GetDutymicros()));
             Serial.println("StepsPerRev = " + String(motor.GetStepsPerRev()));
               Serial.println("CurStepCount = " + String(motor.GetCurStepCount()));
+
   /*for (int i = 7;i<=8;i++)
   {
   Serial.println();
