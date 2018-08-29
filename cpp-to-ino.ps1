@@ -52,15 +52,15 @@ $sketchlibdir="$projdir\srcino\Libraries\"
 Write-Host "Copping The Libraries to Desitination: $sketchlibdir"
 
 # Remove The Libraries Folder in Sketch directory so we can copy into it
-#Remove-Any-File-Force ($Sketchlibdir)
+Remove-Any-File-Force ($Sketchlibdir)
 
 # Copy Libraries form pio lib to Arduino Libraries folder:
-#Copy-Item -Recurse $piolibdir -Destination $sketchlibdir
+Copy-Item -Recurse $piolibdir -Destination $sketchlibdir
 
 # Copy src\src.cpp to srcino\srcino.ino
-#Get-ChildItem -Path $sketchdir -Include *.ino -Recurse | Remove-Item  # Remove it first
-#Copy-Item "$piosrcdir\src.cpp" -Destination "$sketchdir\srcino.ino"   # Copy it to a new name.
+Get-ChildItem -Path $sketchdir -Include *.ino -Recurse | Remove-Item  # Remove it first
+Copy-Item "$piosrcdir\src.cpp" -Destination "$sketchdir\srcino.ino"   # Copy it to a new name.
 
 #CRLF DONE!
-#Write-Host "Contents of src\src.cpp are now copied to srcino\srcino.ino"
+Write-Host "Contents of src\src.cpp are now copied to srcino\srcino.ino"
 Write-Host Done!
