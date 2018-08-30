@@ -7,7 +7,6 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 08-16-18: ITS BEEN 4 MONTHS SINCE THIS PROJECT WAS STARTED AS A POC. WOW TIME FLIES
 */
 //Included Libraries:
-#define DEBUG
 #include <Arduino.h>
 #include <string.h>
 #include <SerialCommand.h>
@@ -16,7 +15,6 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #include <Servo.h>
 //#include "Commands.h"
 //#include "ISRs.h"
-#include <KollmorgenP500.h>
 #include <DirectIO.h>
 #include <PinChangeInterrupt.h>
 
@@ -71,8 +69,6 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #endif
 //Initilize Objects:
 SerialCommand gSerialCommands;
-KollmorgenP500 motor(O7, 2000.00, O4, O5, 10000, 10);
-
 //void SetupSerialCommands(void);
 //Set Up Functions/Methods:
 char GetCurState(int iPinNum);    //gets the CURRENT state of the specified pin number.
@@ -155,14 +151,13 @@ void setup() {
  pinMode(I12,INPUT);
  pinMode(I13,INPUT);
 //attachPCINT(interrupt, function, mode);
-/*
 attachPCINT(digitalPinToPCINT(I8), ISR8, CHANGE);
 attachPCINT(digitalPinToPCINT(I9), ISR9, CHANGE);
 attachPCINT(digitalPinToPCINT(I10), ISR10, CHANGE);
 attachPCINT(digitalPinToPCINT(I11), ISR11, CHANGE);
 attachPCINT(digitalPinToPCINT(I12), ISR12, CHANGE);
 attachPCINT(digitalPinToPCINT(I13), ISR13, CHANGE);
-*/
+
 Serial.begin(kSerialBaudRate);
 
 //The following statments create serial commands to communicate with the ardunioover USB:
@@ -197,7 +192,6 @@ Serial.println("AVR_UNO");
 Serial.println("AVR_MEGA2560");
 #endif
 ///////////////////TESTING///////////////////////////////
-Serial.begin(9600);
 Serial.println("READY");
 //sei();//allow interrupts
 }
@@ -207,7 +201,7 @@ void loop()
   // to run repeatedly:
 ScanStartMicros = micros();
 
-// cli();//stop interrupts
+ cli();//stop interrupts
 
  // check for serial activity
   gSerialCommands.readSerial();
@@ -215,7 +209,7 @@ ScanStartMicros = micros();
   if (gScanRate < gScanRateMin) gScanRateMin = gScanRate;
   if (gScanRate > gScanRateMax) gScanRateMax = gScanRate;
 
-//  sei();//allow interrupts
+  sei();//allow interrupts
 }
 
 /*char GetSerialCommandTxt(char cmd, char arg1, char arg2)
@@ -545,33 +539,53 @@ void SetPWM(void)
      EX. PWM,11,22,50      //Sets pin 11 to output PWM with 22_Hz and 50% Duty Cycle
      */
 //INITIALIZE PARAMETER POINTERS
-char *result, *iMtrNumb, *iDegree;   //, *iFreq, *iDutyCycle, *result;
+char *result, *iPin, *iSteps;   //, *iFreq, *iDutyCycle, *result;
 
 
 //SAVE INPUT PARAMETERS TO VARIABLES
-iMtrNumb = gSerialCommands.next();
-iDegree = gSerialCommands.next();
+iPin = gSerialCommands.next();
+iSteps = gSerialCommands.next();
 //iFreq = gSerialCommands.next();
 //iDutyCycle = gSerialCommands.next();
 result = gNack;
 
-if(iMtrNumb != NULL && iDegree != NULL) //if we have a argument(Pin Number),
+if(iPin != NULL && iSteps != NULL) //if we have a argument(Pin Number), send back an Ack and use default values:
   {
     //Print Out Command:
-    Serial.print(iMtrNumb);
+    Serial.print(iPin);
     Serial.print(",");
-    Serial.println(iDegree);
+    Serial.println(iSteps);
     //UPDATE and Print Out Response:
     result = gAck;
     Serial.println(result);
 
 //Move MTR To Positon
 // This should be re done into a class
-//Serial.print("Previous position = ");
-//Serial.println(motor.GetCurDegs());
-motor.MoveTo(atof(iDegree));
-    }
-}
+for (int i = 0; i <= atoi(iSteps); i += 1)  // goes from 0 degrees to 180 degrees
+  {
+  digitalWrite(atoi(iPin), HIGH);
+  delayMicroseconds(1); // Approximately 10% duty cycle @ 10KHz
+  digitalWrite(atoi(iPin), LOW);
+  delayMicroseconds(100 - 1);
+  }
+int pos = 0;    // variable to store the servo position
+/* for (pos = 0; pos <= atoi(iSteps); pos += 1) { // goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+    myservo.write(pos);              // tell servo to go to position in variable 'pos'
+    delay(15);                       // waits 15ms for the servo to reach the position
+  } TOUT,4
+ */
+/*  for (pos = 180; pos >= 0; pos -= 1)  // goes from 180 degrees to 0 degrees
+ *   {
+    myservo.write(pos);              // tell servo to go to position in variable 'pos'
+    delay(15);                       // waits 15ms for the servo to reach the position
+      } */
+
+  }
+
+}//end function 'SetPWM'
+
+
 
 void CmdUnknown(const char *iCommand) //Called on anything sent that is not defined as a command (ex. 'TPGTRIG')
 {
@@ -582,16 +596,7 @@ void CmdUnknown(const char *iCommand) //Called on anything sent that is not defi
 void DebugPrint(void) //FUNCTION FOR SERIAL DEBUGING
 {
   //Your Debugging Statments Here:
-  //Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
-
-  Serial.println("Freq = " + String(motor.GetFreq()));
-
-      Serial.println("Period = " + String(motor.GetPeriod()));
-        Serial.println("Duty = " + String(motor.GetDuty()));
-          Serial.println("Dutymicros = " + String(motor.GetDutymicros()));
-            Serial.println("StepsPerRev = " + String(motor.GetStepsPerRev()));
-              Serial.println("CurStepCount = " + String(motor.GetCurStepCount()));
-
+  Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
   /*for (int i = 7;i<=8;i++)
   {
   Serial.println();

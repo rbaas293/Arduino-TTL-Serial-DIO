@@ -16,7 +16,7 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #include <Servo.h>
 //#include "Commands.h"
 //#include "ISRs.h"
-#include <SigPWM.h>
+#include <KollmorgenP500.h>
 #include <DirectIO.h>
 #include <PinChangeInterrupt.h>
 
@@ -71,7 +71,7 @@ This code is designed to make a arduino into a simple Serial DIO Controller. It 
 #endif
 //Initilize Objects:
 SerialCommand gSerialCommands;
-SigPWM motor(O7, 2000.00, O4, O5, 10000, 10);
+KollmorgenP500 motor(O7, 2000.00, O4, O5, 10000, 10);
 
 //void SetupSerialCommands(void);
 //Set Up Functions/Methods:
@@ -567,9 +567,9 @@ if(iMtrNumb != NULL && iDegree != NULL) //if we have a argument(Pin Number),
 
 //Move MTR To Positon
 // This should be re done into a class
-Serial.print("Previous position = ");
-Serial.println(motor.GetCurDegs());
-motor.Move(atof(iDegree));
+//Serial.print("Previous position = ");
+//Serial.println(motor.GetCurDegs());
+motor.MoveTo(atof(iDegree));
     }
 }
 
@@ -583,7 +583,7 @@ void DebugPrint(void) //FUNCTION FOR SERIAL DEBUGING
 {
   //Your Debugging Statments Here:
   //Serial.println("Put your DEBUGGING code in the function 'DebugPrint' and it will be displayed here.");
- 
+
   Serial.println("Freq = " + String(motor.GetFreq()));
 
       Serial.println("Period = " + String(motor.GetPeriod()));

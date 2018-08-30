@@ -1,16 +1,18 @@
-#ifndef SIGPWM_H
-#define SIGPWM_H
+#ifndef KollmorgenP500_H
+#define KollmorgenP500_H
 
 #include <Arduino.h>
-
+#ifndef
+#define DEBUG
+#endif
 //#include <SdFat.h>
 
 #include <EEPROMex.h>
-class SigPWM
+class KollmorgenP500
 {
 public:
-SigPWM(const int iOutPin, double iStepsPerRev, const int iDisablePin, const int iDirecPin, int iFreq, int iDuty);
-~SigPWM(void);
+KollmorgenP500(const int iOutPin, double iStepsPerRev, const int iDisablePin, const int iDirecPin, int iFreq, int iDuty);
+~KollmorgenP500(void);
 
 void Save2EEPROM(void);
 void ReadEEPROM(void);
