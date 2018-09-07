@@ -21,21 +21,39 @@ KollmorgenP500::~KollmorgenP500(void){
 void KollmorgenP500::Save2EEPROM(void){
 //Save all member variables to EEPROM ino order to save state incase a reset occurs
 int address=0;
-EEPROM.writeDouble(address, mCurPositionDeg);
-address += sizeof(mCurPositionDeg);
-EEPROM.updateLong(address, mStepCount);
-address += sizeof(mStepCount);
+//address0 = getAddress(int noOfBytes); //Geets the first open address in EEPROM
+//calculated or values that update
+EEPROM.writeDouble(address, mCurPositionDeg); //Write EEPROM Adress 0-31
+address += sizeof(mCurPositionDeg); //Sets adress variable to 32
+EEPROM.updateLong(address, mStepCount); //Write EEPROM adress 32-63
+address += sizeof(mStepCount); //Sets address to 64
+EEPROM.updateLong(address, mAbsPositionDeg);
+address += sizeof(mAbsPositionDeg);
+EEPROM.updateLong(address, mAbsPositionStep);
+address += sizeof(mAbsPositionStep);
 
+//Required Values to keep constant.
+EEPROM.update(address, mOutPin);
+address += sizeof(mOutPin);
+EEPROM.update(address, mDisablePin);
+address += sizeof(mDisablePin);
+EEPROM.update(address, mDirecPin);
+address += sizeof(mDirecPin);
+EEPROM.updateDouble(address, mFreq);
+address += sizeof(mFreq);
+EEPROM.updateDouble(address, mDuty);
+address += sizeof(mDuty);
 EEPROM.updateDouble(address, mStepsPerRev);
 address += sizeof(mStepsPerRev);
-EEPROM.update(address, mFreq);
-address += sizeof(mFreq);
-EEPROM.update(address, mDuty);
-address += sizeof(mDuty);
+
 }
 
 void KollmorgenP500::ReadEEPROM(void){
 // Read all back into the stack.
+
+//EEPROM.readDouble();
+
+
 
 ;; //later will prolly need to make this go in main cpp
 
