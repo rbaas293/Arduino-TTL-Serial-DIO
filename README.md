@@ -1,3 +1,5 @@
+* **NOTE** as of 10/4/18 This repository has moved to GitLab as private. I may choose to mirror it here in the future. 
+
 ## __RS-232 Serial Commands for Arduino DIO & PWM__
 This repository holds the code, libraries, and README created for use with a out of the box arduino uno.
 
